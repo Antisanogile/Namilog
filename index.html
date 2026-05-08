@@ -149,15 +149,31 @@
       function load(key, fallback){ try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
       function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
       function emptyDraft(){ return { emotion:null, progress:null, task:'', memo:'', nextAction:'' }; }
+      function resolveEmotion(value){
+        if(!value) return null;
+        if(typeof value === 'string') return emotions.find(e => e.id === value || e.label === value || e.emoji === value) || { label:value, emoji:'🌊', score:0 };
+        return emotions.find(e => e.id === value.id || e.label === value.label || e.emoji === value.emoji) || value;
+      }
+      function resolveProgress(value){
+        if(!value) return null;
+        if(typeof value === 'string') return progresses.find(p => p.id === value || p.label === value || p.emoji === value) || { label:value, emoji:'', score:0 };
+        return progresses.find(p => p.id === value.id || p.label === value.label || p.emoji === value.emoji) || value;
+      }
+      function finiteNumber(value, fallback=0){
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+      }
       function normalizeLog(log){
-        const emotion = typeof log.emotion === 'string' ? emotions.find(e => e.id === log.emotion || e.label === log.emotion) : log.emotion;
-        const progress = typeof log.progress === 'string' ? progresses.find(p => p.id === log.progress || p.label === log.progress) : log.progress;
+        const emotion = resolveEmotion(log.emotion);
+        const progress = resolveProgress(log.progress);
+        const emotionScore = finiteNumber(log.emotionScore, finiteNumber(emotion?.score, 0));
+        const progressScore = finiteNumber(log.progressScore, finiteNumber(progress?.score, 0));
         return {
           ...log,
-          emotion: emotion || log.emotion || null,
-          progress: progress || log.progress || null,
-          emotionScore: Number.isFinite(log.emotionScore) ? log.emotionScore : (emotion?.score ?? 0),
-          progressScore: Number.isFinite(log.progressScore) ? log.progressScore : (progress?.score ?? 0),
+          emotion: emotion || null,
+          progress: progress || null,
+          emotionScore,
+          progressScore,
           task: log.task || log.taskName || '',
         };
       }
@@ -341,13 +357,95 @@
       function escapeHtml(s){ return String(s ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
       function escapeAttr(s){ return escapeHtml(s).replace(/'/g,'&#39;'); }
       function toast(msg){ state.toast=msg; render(); setTimeout(()=>{state.toast=''; render();},2100); }
-      async function initSW(){ if(!('serviceWorker' in navigator)) return; try { state.swRegistration = await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js`); navigator.serviceWorker.addEventListener('message', e=>{ if(e.data?.type==='OPEN_QUICK_CHECK'){ state.draft=emptyDraft(); state.quickOpen=true; render(); }}); } catch(e){} }
-      async function requestNotifications(){ if(!('Notification' in window)){ state.permission='unsupported'; render(); return; } const p = await Notification.requestPermission(); state.permission = p; if(p==='granted'){ state.settings.browserNotification = true; save(SETTINGS_KEY,state.settings); toast('リマインド通知を許可しました'); showBrowserNotification('manual'); } else toast('通知はまだ許可されていません'); render(); }
+      async function initSW(){
+        if(!('serviceWorker' in navigator)) return;
+        try {
+          const reg = await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=6.1`);
+          await reg.update?.();
+          state.swRegistration = await navigator.serviceWorker.ready;
+          navigator.serviceWorker.addEventListener('message', e=>{
+            if(e.data?.type==='OPEN_QUICK_CHECK'){
+              state.draft=emptyDraft();
+              state.quickOpen=true;
+              render();
+            }
+          });
+        } catch(e){
+          console.warn('NamiLog notification setup failed', e);
+        }
+      }
+      async function requestNotifications(){
+        if(!('Notification' in window)){
+          state.permission='unsupported';
+          render();
+          return;
+        }
+        const p = await Notification.requestPermission();
+        state.permission = p;
+        if(p==='granted'){
+          state.settings.browserNotification = true;
+          save(SETTINGS_KEY,state.settings);
+          render();
+          toast('リマインド通知を許可しました');
+          await showBrowserNotification('manual');
+        } else {
+          toast('通知はまだ許可されていません');
+          render();
+        }
+      }
+      async function ensureSWRegistration(){
+        if(!('serviceWorker' in navigator)) return null;
+        try {
+          if(state.swRegistration) return state.swRegistration;
+          await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=6.1`);
+          state.swRegistration = await navigator.serviceWorker.ready;
+          await state.swRegistration.update?.();
+          return state.swRegistration;
+        } catch(e){
+          console.warn('NamiLog service worker not ready', e);
+          return null;
+        }
+      }
+      function openQuickFromNotification(){
+        state.draft=emptyDraft();
+        state.quickOpen=true;
+        render();
+        try { window.focus(); } catch(e) {}
+      }
       async function showBrowserNotification(reason='manual'){
-        if(!('Notification' in window) || Notification.permission !== 'granted'){ toast('先に通知オンを押してね'); return; }
-        let reg = state.swRegistration || await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js`);
-        await reg.showNotification('NamiLog Quick Check', { body: reason==='scheduled'?'今の気分と進み具合を、そっと残しておこう。':'クリックするとQuick Checkを開きます。', tag:'namilog-quick-check', renotify:true, data:{ url: new URL(`${BASE_PATH}?quickCheck=1`, location.origin).href }, actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}] });
-        if(reason==='manual') toast('テスト通知を出しました');
+        if(!('Notification' in window) || Notification.permission !== 'granted'){
+          state.permission = notificationPermission();
+          toast('先に通知オンを押してね');
+          render();
+          return;
+        }
+        state.permission = 'granted';
+        const title = 'NamiLog Quick Check';
+        const body = reason==='scheduled' ? '今の気分と進み具合を、そっと残しておこう。' : 'クリックするとQuick Checkを開きます。';
+        const url = new URL(`${BASE_PATH}?quickCheck=1`, location.origin).href;
+        try {
+          const reg = await ensureSWRegistration();
+          if(!reg) throw new Error('service worker registration unavailable');
+          await reg.showNotification(title, {
+            body,
+            tag:'namilog-quick-check',
+            renotify:true,
+            requireInteraction:false,
+            data:{ url },
+            actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]
+          });
+          if(reason==='manual') toast('テスト通知を出しました');
+        } catch(e){
+          console.warn('showNotification failed; falling back to Notification()', e);
+          try {
+            const notification = new Notification(title, { body, tag:'namilog-quick-check' });
+            notification.onclick = () => openQuickFromNotification();
+            if(reason==='manual') toast('テスト通知を出しました');
+          } catch(err){
+            console.warn('Notification fallback failed', err);
+            toast('通知の表示に失敗しました。Chromeのサイト設定を確認してね');
+          }
+        }
       }
       let intervalId = null;
       function setupTimers(){ if(intervalId) clearInterval(intervalId); if(state.settings.browserNotification){ intervalId = setInterval(()=>showBrowserNotification('scheduled'), state.settings.intervalMinutes*60*1000); } }
