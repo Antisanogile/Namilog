@@ -68,8 +68,9 @@
     const TASKS_KEY='namilog.taskCandidates.v1';
     const CALENDAR_KEY='namilog.calendarItems.v1';
     const PROFILE_KEY='namilog.profile.v1';
+    const GOOGLE_KEY='namilog.googleCalendar.v1';
     const BASE_PATH='/Namilog/';
-    const VERSION='v10 account-migration';
+    const VERSION='v11 google-calendar-starter';
     const emotions=[
       {id:'fun',emoji:'😄',label:'楽しい',score:2},{id:'good',emoji:'🙂',label:'いい感じ',score:2},{id:'calm',emoji:'😌',label:'穏やか',score:1},{id:'tired',emoji:'🥺',label:'少ししんどい',score:-2},{id:'cloudy',emoji:'☁️',label:'モヤモヤ',score:-1}
     ];
@@ -79,7 +80,7 @@
     const defaultTasks=['資料作成','会議','顧客対応','研修','1on1','実装','考える時間','日報'];
     const defaultSettings={intervalMinutes:120, browserNotification:false};
     const defaultProfile={name:'',email:'',team:'',privateMode:true};
-    let state={logs:loadLogs(),settings:loadSettings(),profile:loadProfile(),tasks:loadTasks(),calendarItems:loadCalendarItems(),calendarText:'',range:'day',quickOpen:false,draft:blankDraft(),toast:'',permission:getPermission(),registration:null,filterTask:'',newTask:''};
+    let state={logs:loadLogs(),settings:loadSettings(),profile:loadProfile(),google:loadGoogleSettings(),tasks:loadTasks(),calendarItems:loadCalendarItems(),calendarText:'',range:'day',quickOpen:false,draft:blankDraft(),toast:'',permission:getPermission(),registration:null,filterTask:'',newTask:''};
 
     function blankDraft(){return{emotion:null,progress:null,task:'',memo:'',nextAction:''}}
     function safeParse(raw,fallback){try{return raw?JSON.parse(raw):fallback}catch{return fallback}}
@@ -87,6 +88,8 @@
     function loadSettings(){return {...defaultSettings,...safeParse(localStorage.getItem(SETTINGS_KEY),{})}}
     function loadProfile(){return {...defaultProfile,...safeParse(localStorage.getItem(PROFILE_KEY),{})}}
     function saveProfile(){localStorage.setItem(PROFILE_KEY,JSON.stringify(state.profile))}
+    function loadGoogleSettings(){return {clientId:'',connected:false,lastSyncAt:'',lastError:'',...safeParse(localStorage.getItem(GOOGLE_KEY),{})}}
+    function saveGoogleSettings(){localStorage.setItem(GOOGLE_KEY,JSON.stringify(state.google))}
     function profileLabel(){return state.profile.name||state.profile.email||'自分だけのログ'}
     function profileHint(){return state.profile.email?`このブラウザ内では ${state.profile.email} の個人ログとして扱います。`: '今はこのブラウザ内だけの個人ログです。メールを入れると、後で個別アカウント化しやすくなります。'}
     function loadTasks(){const raw=safeParse(localStorage.getItem(TASKS_KEY),null); return Array.isArray(raw)&&raw.length?raw:defaultTasks}
@@ -192,6 +195,44 @@
     function logList(logs){if(!logs.length)return`<div class="empty"><div><p style="font-size:42px;margin:0">🌤️</p><h3>まだ波の記録がありません</h3><p>「今の波を残す」から、まず1件だけ残してみましょう。</p></div></div>`; return `<div class="logList">${logs.map(l=>`<article class="logCard"><div class="emojiBox"><span>${l.emotion?.emoji||'〜'}</span></div><div><div class="time">${fmtTime(l.createdAt)}</div><h3>${escape(l.emotion?.label||'未選択')}${l.progress?` / ${l.progress.emoji} ${escape(l.progress.label)}`:''}</h3>${l.task?`<p>タスク：${escape(l.task)}</p>`:''}${l.memo?`<p>メモ：${escape(l.memo)}</p>`:''}${l.nextAction?`<p>次：${escape(l.nextAction)}</p>`:''}</div><button class="danger small" data-delete="${l.id}">削除</button></article>`).join('')}</div>`}
     function productionPlanHtml(){return `<div class="settingsBox dbBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>個別アカウント本番化</h3><p class="hint">全社利用では、本人だけが自分のログを見られるDB保存に移行します。今日はその移行準備まで入れます。</p></div><span class="statusPill granted">準備中</span></div><div class="checkGrid"><div class="checkItem"><span>🔐</span><span><b>本人だけ参照</b><br>ログは user_id に紐づけ、Row Level Security で本人のデータだけ読める設計にします。</span></div><div class="checkItem"><span>📦</span><span><b>移行しやすいJSON</b><br>現在のローカルログを profile / logs に分けて出力できます。DB投入の前段に使えます。</span></div><div class="checkItem"><span>🗓️</span><span><b>Google連携の単位</b><br>カレンダー連携はユーザーごとに許可し、予定タイトルだけをタスク候補として保存する想定です。</span></div></div><div class="sideActions"><button class="primary small" data-action="copySchema">DBスキーマをコピー</button><button class="ghost small" data-action="copyRls">RLS設計をコピー</button><button class="ghost small" data-action="importJson">JSON取り込み</button><input id="jsonImportFile" type="file" accept="application/json" style="display:none"></div><textarea class="schemaPreview" readonly>${escape(schemaPreviewText())}</textarea><p class="privacyNote">共有はデフォルトでは行いません。日報・週報・面談のたねは、本人がコピーして必要な範囲だけ共有する設計です。</p></div>`}
     function profileHtml(){return `<div class="settingsBox profileBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>マイログ設定</h3><p class="hint">全社利用に向けた個別アカウント準備版です。今はこのブラウザ内にだけ保存されます。</p></div><span class="statusPill granted">自分専用</span></div><div class="quickFields" style="grid-template-columns:1fr 1fr;margin-top:12px"><label><span>名前</span><input id="profileName" placeholder="例：佐野" value="${escape(state.profile.name)}"></label><label><span>メール</span><input id="profileEmail" placeholder="例：name@example.com" value="${escape(state.profile.email)}"></label><label class="wide"><span>所属・チーム</span><input id="profileTeam" placeholder="例：営業推進 / A班" value="${escape(state.profile.team)}"></label></div><div class="sideActions"><button class="primary small" data-action="saveProfile">マイログ設定を保存</button><button class="ghost small" data-action="copyAccountPlan">アカウント設計メモをコピー</button></div><p class="softNote">${escape(profileHint())}<br>次段階ではGoogleログイン/Supabase等につなぎ、端末をまたいでも本人だけが参照できる形にします。</p></div>`}
+
+    function googleCalendarHtml(){
+      const connected=state.google.connected; const last=state.google.lastSyncAt?`最終取得：${fmtTime(state.google.lastSyncAt)}`:'まだ取得していません';
+      return `<div class="settingsBox googleBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>Googleカレンダー連携</h3><p class="hint">Google OAuth Client IDを入れると、本人の今日の予定を取得してタスク候補にできます。</p></div><span class="statusPill ${connected?'granted':''}">${connected?'接続準備OK':'未接続'}</span></div><label class="settingRow" style="align-items:flex-start"><span>OAuth Client ID</span><input id="googleClientId" style="max-width:100%;width:100%" placeholder="xxxxx.apps.googleusercontent.com" value="${escape(state.google.clientId||'')}"></label><div class="sideActions"><button class="primary small" data-action="saveGoogleClient">Client ID保存</button><button class="primary small" data-action="connectGoogleCalendar">Google予定を取得</button><button class="ghost small" data-action="copyGoogleSetup">設定手順をコピー</button></div><p class="hint">${escape(last)}${state.google.lastError?`<br>前回エラー：${escape(state.google.lastError)}`:''}</p><p class="softNote">まずは今日の予定タイトルと時刻だけを取得します。予定内容の本文は保存しません。</p></div>`
+    }
+    function googleSetupText(){return [`# NamiLog Googleカレンダー連携セットアップ`,'','## Google Cloudで行うこと','1. Google Cloud Consoleでプロジェクトを作る','2. Google Calendar APIを有効化する','3. OAuth同意画面を設定する','4. OAuth Client IDを作る。種類は「ウェブアプリ」','5. 承認済みのJavaScript生成元に https://antisanogile.github.io を追加する','6. 作成された Client ID をNamiLogの「OAuth Client ID」に貼り付ける','','## NamiLog側','- 「Client ID保存」→「Google予定を取得」','- 読み取りスコープは calendar.readonly','- 取得した予定はQuick Checkのタスク候補に入る','','## 本番化メモ','- 全社展開では、各自がGoogleログインして本人の予定だけを取得する。','- DB保存する場合も、予定本文ではなく title/start/end/source 程度に絞る。'].join('\n')}
+    function saveGoogleClient(){state.google.clientId=(document.getElementById('googleClientId')?.value||'').trim(); state.google.connected=!!state.google.clientId; state.google.lastError=''; saveGoogleSettings(); toast(state.google.clientId?'Client IDを保存しました':'Client IDを空にしました'); render()}
+    function loadGoogleIdentityScript(){return new Promise((resolve,reject)=>{if(window.google?.accounts?.oauth2){resolve();return} const existing=document.querySelector('script[data-google-identity]'); if(existing){existing.addEventListener('load',resolve,{once:true}); existing.addEventListener('error',reject,{once:true}); return} const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true; s.defer=true; s.dataset.googleIdentity='1'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s)})}
+    async function connectGoogleCalendar(){
+      saveGoogleClient();
+      if(!state.google.clientId){toast('OAuth Client IDを入れてください');return}
+      try{
+        await loadGoogleIdentityScript();
+        const tokenClient=google.accounts.oauth2.initTokenClient({
+          client_id:state.google.clientId,
+          scope:'https://www.googleapis.com/auth/calendar.readonly',
+          callback:async(resp)=>{
+            if(resp.error){state.google.lastError=resp.error; saveGoogleSettings(); toast('Google認証に失敗しました'); render(); return}
+            await fetchGoogleTodayEvents(resp.access_token)
+          }
+        });
+        tokenClient.requestAccessToken({prompt:'consent'});
+      }catch(e){state.google.lastError='Google Identity Servicesを読み込めませんでした'; saveGoogleSettings(); toast('Google連携の準備に失敗しました'); render()}
+    }
+    async function fetchGoogleTodayEvents(accessToken){
+      try{
+        const start=new Date(); start.setHours(0,0,0,0); const end=new Date(start); end.setDate(end.getDate()+1);
+        const params=new URLSearchParams({timeMin:start.toISOString(),timeMax:end.toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'20'});
+        const res=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,{headers:{Authorization:`Bearer ${accessToken}`}});
+        if(!res.ok){throw new Error(`Calendar API ${res.status}`)}
+        const data=await res.json();
+        const items=(data.items||[]).filter(e=>e.status!=='cancelled').map((e,i)=>{
+          const st=e.start?.dateTime||e.start?.date||''; const en=e.end?.dateTime||e.end?.date||''; const sd=st?new Date(st):null; const ed=en?new Date(en):null;
+          return {id:`google-${e.id||Date.now()+'-'+i}`,time:sd&&!isNaN(sd)?sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'',end:ed&&!isNaN(ed)?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'',title:e.summary||'予定名なし',source:'google'}
+        });
+        state.calendarItems=items; state.google.connected=true; state.google.lastSyncAt=new Date().toISOString(); state.google.lastError=''; saveCalendarItems(); saveGoogleSettings(); toast(`${items.length}件の予定を取得しました`); render();
+      }catch(e){state.google.lastError=e.message||'Calendar APIの取得に失敗しました'; saveGoogleSettings(); toast('予定取得に失敗しました'); render()}
+    }
     function settingsHtml(){const label=state.permission==='granted'?'許可済み':state.permission==='denied'?'ブロック中':state.permission==='unsupported'?'非対応':'未許可'; return `<div class="settingsBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>リマインド通知</h3><p class="hint">他の作業中でも、Windows右下からNamiLogがそっと声をかけます。</p></div><span class="statusPill ${state.permission}">${label}</span></div><div class="sideActions"><button class="primary small" data-action="requestNotify">通知オン</button><button class="ghost small" data-action="testNotify">テスト通知</button></div><label class="settingRow"><span>定期的に声をかけてもらう</span><input type="checkbox" data-action="toggleNotify" ${state.settings.browserNotification?'checked':''}></label><label class="settingRow"><span>間隔</span><select data-action="interval"><option value="30" ${state.settings.intervalMinutes==30?'selected':''}>30分</option><option value="60" ${state.settings.intervalMinutes==60?'selected':''}>1時間</option><option value="120" ${state.settings.intervalMinutes==120?'selected':''}>2時間</option><option value="180" ${state.settings.intervalMinutes==180?'selected':''}>3時間</option></select></label><p class="hint">通知クリックでQuick Checkが開きます。定期通知はNamiLogを開いている間に動きます。</p></div>`}
     function quickModal(){const d=state.draft; return `<div class="modalBackdrop"><div class="quick"><button class="close" data-action="closeQuick">×</button><p class="eyebrow">QUICK CHECK</p><h2>今の波を残そう</h2><p class="quickLead">感情と進み具合を選ぶだけで、日報と週報のたねになります。</p><div class="choiceTitle"><h3>感情</h3><span>1つ選択</span></div><div class="choiceGrid">${emotions.map(e=>`<button class="choice ${d.emotion?.id===e.id?'selected':''}" data-emotion="${e.id}"><span>${e.emoji}</span><strong>${e.label}</strong></button>`).join('')}</div><div class="choiceTitle"><h3>仕事の進み具合</h3><span>任意</span></div><div class="choiceGrid">${progresses.map(p=>`<button class="choice ${d.progress?.id===p.id?'selected':''}" data-progress="${p.id}"><span>${p.emoji}</span><strong>${p.label}</strong></button>`).join('')}</div><div class="quickFields"><label><span>今のタスク</span><select id="draftTask"><option value="">選択なし</option>${allTaskOptions().map(t=>`<option value="${escape(t)}" ${d.task===t?'selected':''}>${escape(t)}</option>`).join('')}</select></label><label><span>30秒メモ</span><input id="draftMemo" placeholder="例：少し詰まったが前進あり" value="${escape(d.memo)}"></label><label class="wide"><span>次にやること</span><input id="draftNext" placeholder="例：上長に相談する/明日確認する" value="${escape(d.nextAction)}"></label></div><div class="modalActions"><button class="primary" data-action="saveQuick">この波を残す</button><button class="ghost" data-action="saveEmotionOnly">感情だけで残す</button><button class="textBtn" data-action="closeQuick">閉じる</button></div></div></div>`}
     function bindEvents(){
@@ -218,6 +259,9 @@
       document.querySelectorAll('[data-calendar-task]').forEach(b=>b.onclick=()=>{state.draft=draftWithSuggestedTask();state.draft.task=b.dataset.calendarTask;state.quickOpen=true;render()});
       const saveProf=document.querySelector('[data-action="saveProfile"]'); if(saveProf)saveProf.onclick=()=>{state.profile.name=(document.getElementById('profileName')?.value||'').trim(); state.profile.email=(document.getElementById('profileEmail')?.value||'').trim(); state.profile.team=(document.getElementById('profileTeam')?.value||'').trim(); saveProfile(); toast('マイログ設定を保存しました')};
       const copyPlan=document.querySelector('[data-action="copyAccountPlan"]'); if(copyPlan)copyPlan.onclick=()=>copyText(accountPlanText(),'アカウント設計メモをコピーしました');
+      const saveG=document.querySelector('[data-action="saveGoogleClient"]'); if(saveG)saveG.onclick=saveGoogleClient;
+      const connectG=document.querySelector('[data-action="connectGoogleCalendar"]'); if(connectG)connectG.onclick=connectGoogleCalendar;
+      const copyG=document.querySelector('[data-action="copyGoogleSetup"]'); if(copyG)copyG.onclick=()=>copyText(googleSetupText(),'Googleカレンダー設定手順をコピーしました');
       const copySchema=document.querySelector('[data-action="copySchema"]'); if(copySchema)copySchema.onclick=()=>copyText(supabaseSchemaText(),'DBスキーマをコピーしました');
       const copyRls=document.querySelector('[data-action="copyRls"]'); if(copyRls)copyRls.onclick=()=>copyText(rlsPolicyText(),'RLS設計をコピーしました');
       const importJsonBtn=document.querySelector('[data-action="importJson"]'); const importFile=document.getElementById('jsonImportFile'); if(importJsonBtn&&importFile)importJsonBtn.onclick=()=>importFile.click(); if(importFile)importFile.onchange=importJsonFromFile;
