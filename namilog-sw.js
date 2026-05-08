@@ -1,4 +1,4 @@
-const VERSION = 'namilog-sw-v11';
+const VERSION = 'namilog-sw-v12';
 self.addEventListener('install', (event) => { self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(self.clients.claim()); });
 self.addEventListener('notificationclick', (event) => {
