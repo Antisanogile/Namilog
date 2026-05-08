@@ -5,419 +5,187 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NamiLog</title>
   <style>
-    :root {
-      --ink: #253045;
-      --muted: #75849b;
-      --line: rgba(244, 121, 105, 0.18);
-      --card: rgba(255, 255, 255, 0.66);
-      --coral: #ff816c;
-      --rose: #ef6faf;
-      --lavender: #9aa9ff;
-      --cream: #fff8f4;
-      --green: #70b986;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 10% 12%, rgba(255, 129, 108, 0.22), transparent 30%),
-        radial-gradient(circle at 78% 12%, rgba(239, 111, 175, 0.23), transparent 34%),
-        radial-gradient(circle at 92% 72%, rgba(154, 169, 255, 0.24), transparent 32%),
-        linear-gradient(135deg, #fff8f4 0%, #fff5f7 45%, #f7f2ff 100%);
+    :root{
+      --ink:#243047; --muted:#74829a; --soft:#fff7f3; --card:rgba(255,255,255,.76);
+      --line:rgba(255,137,112,.25); --coral:#ff7d69; --pink:#ed67a8; --lav:#9ca4ff; --cream:#fffaf5;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink); background:#fff8f4;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; min-height: 100vh; }
-    button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
-    .app { width: min(1240px, calc(100% - 36px)); margin: 0 auto; padding: 24px 0 90px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand-chip, .brand-main { border: 1px solid rgba(255,129,108,.28); background: rgba(255,255,255,.62); border-radius: 999px; padding: 10px 16px; font-weight: 900; color: #e65f4d; letter-spacing: .16em; }
-    .brand-main { display: flex; align-items: center; gap: 10px; letter-spacing: .08em; color: #df5f50; padding: 9px 20px 9px 10px; }
-    .brand-icon { display: grid; place-items: center; width: 42px; height: 42px; color: white; border-radius: 50%; background: linear-gradient(135deg, var(--coral), var(--rose), var(--lavender)); }
-    .mini-status { color: var(--muted); font-weight: 800; font-size: 14px; }
-    .hero { position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.72); border-radius: 36px; padding: 48px; min-height: 300px; background: rgba(255,255,255,.54); box-shadow: 0 26px 90px rgba(90,62,90,.1); backdrop-filter: blur(22px); }
-    .hero:before { content: ""; position: absolute; inset: auto -8% -35% 42%; height: 270px; background: radial-gradient(circle, rgba(255,129,108,.28), transparent 60%); filter: blur(12px); }
-    .hero h1 { position: relative; margin: 0; font-size: clamp(64px, 10vw, 112px); line-height: .9; letter-spacing: -.08em; background: linear-gradient(105deg, #23304a, #44384f 60%, #c85b4d); -webkit-background-clip: text; color: transparent; }
-    .hero p { position: relative; max-width: 820px; color: #687891; font-size: 18px; line-height: 2; margin: 26px 0 0; }
-    .hero-actions { position: absolute; top: 46px; right: 48px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
-    .primary, .ghost, .danger, .text-btn { border: 0; border-radius: 22px; font-weight: 900; transition: .18s ease; }
-    .primary { color: white; padding: 16px 24px; background: linear-gradient(135deg, var(--coral), var(--rose) 56%, var(--lavender)); box-shadow: 0 22px 50px rgba(239,111,175,.28); }
-    .ghost { color: #34425a; padding: 16px 22px; background: rgba(255,255,255,.75); border: 1px solid rgba(239,111,175,.18); }
-    .danger { color: #c55254; padding: 13px 18px; background: #fff4f3; border: 1px solid rgba(255,129,108,.28); }
-    .text-btn { background: transparent; color: #31415b; text-decoration: underline; text-underline-offset: 4px; padding: 8px; }
-    .primary:hover, .ghost:hover, .danger:hover, .text-btn:hover { transform: translateY(-1px); }
-    .small { padding: 10px 14px; border-radius: 16px; font-size: 14px; }
-    .grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .78fr); gap: 22px; margin-top: 22px; }
-    .panel { border: 1px solid rgba(255,255,255,.72); border-radius: 32px; padding: 28px; background: rgba(255,255,255,.64); box-shadow: 0 22px 80px rgba(82,60,92,.08); backdrop-filter: blur(22px); }
-    .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
-    .eyebrow { margin: 0 0 10px; color: #ef6b55; letter-spacing: .22em; font-size: 12px; font-weight: 900; text-transform: uppercase; }
-    h2 { margin: 0; font-size: 30px; letter-spacing: -.05em; }
-    h3 { margin: 0; }
-    .badge { display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; border-radius: 999px; color: #d45b4b; background: #fff3eb; font-weight: 900; font-size: 13px; border: 1px solid rgba(255,129,108,.22); }
-    .tabs { display: flex; gap: 8px; margin: 10px 0 18px; }
-    .tab { width: 42px; height: 42px; border-radius: 999px; border: 1px solid rgba(255,129,108,.22); background: white; color: #6e7890; font-weight: 900; }
-    .tab.active { color: white; border: 0; background: linear-gradient(135deg, var(--coral), var(--rose)); }
-    .chart-card { padding: 22px; border: 1px solid var(--line); border-radius: 26px; background: rgba(255,255,255,.68); }
-    .chart-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    #waveChart { width: 100%; height: 260px; display: block; }
-    .insight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
-    .insight { padding: 18px; border-radius: 24px; background: rgba(255,255,255,.48); }
-    .insight h4 { margin: 0 0 8px; color: #bf584f; }
-    .insight p { margin: 0; color: #67768e; line-height: 1.75; }
-    .logs { display: grid; gap: 12px; margin-top: 18px; }
-    .log { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid rgba(255,129,108,.16); border-radius: 24px; background: rgba(255,255,255,.58); }
-    .log-emoji { flex: 0 0 58px; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 20px; background: linear-gradient(180deg, #fff, #fff3ef); font-size: 28px; }
-    .log-body { flex: 1; min-width: 0; }
-    .log-meta { color: #817c8b; font-weight: 900; font-size: 13px; margin-bottom: 7px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .log-title { font-size: 20px; font-weight: 900; }
-    .log p { margin: 7px 0 0; color: #66748b; line-height: 1.7; }
-    .delete { border: 0; background: transparent; color: #c8585f; font-weight: 900; }
-    .daily { width: 100%; min-height: 310px; resize: vertical; padding: 18px; color: #34445f; background: rgba(255,255,255,.62); border: 1px solid rgba(255,129,108,.18); border-radius: 22px; line-height: 1.8; }
-    .side-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-    .settings { margin-top: 18px; padding: 18px; border-radius: 24px; border: 1px solid rgba(255,129,108,.16); background: linear-gradient(180deg, rgba(255,248,245,.9), rgba(255,255,255,.45)); }
-    .setting-row { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-top: 13px; font-weight: 800; color: #43536d; }
-    .setting-row select { padding: 10px 12px; border-radius: 16px; border: 1px solid rgba(255,129,108,.25); background: white; font-weight: 900; color: #29354c; }
-    .hint { color: #7a879b; line-height: 1.7; margin: 8px 0 0; }
-    .status { display: inline-flex; padding: 8px 11px; border-radius: 999px; font-size: 12px; font-weight: 900; background: #fff8e8; color: #9a6a2b; border: 1px solid rgba(244,190,88,.55); }
-    .status.granted { color: #2f7a4f; background: #effaf3; border-color: rgba(96,180,123,.45); }
-    .status.denied { color: #b04444; background: #fff1f1; border-color: rgba(255,160,160,.7); }
-    .task-input, .quick input, .quick textarea { width: 100%; border: 1px solid rgba(255,129,108,.18); border-radius: 18px; background: rgba(255,255,255,.74); color: #253045; padding: 12px 14px; outline: none; }
-    .task-list { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .task-pill, .choice { border: 1px solid rgba(255,129,108,.2); color: #41516d; background: rgba(255,255,255,.65); border-radius: 999px; padding: 9px 12px; font-weight: 800; }
-    .task-pill.active, .choice.active { background: #fff2ef; color: #d45b4b; border-color: rgba(255,129,108,.45); }
-    .quick { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; padding: 26px; border: 1px solid rgba(255,255,255,.78); border-radius: 32px; background: rgba(255,255,255,.88); box-shadow: 0 30px 120px rgba(72,50,90,.22); backdrop-filter: blur(24px); animation: pop .18s ease both; }
-    @keyframes pop { from { opacity:0; transform: translateY(12px) scale(.985); } to { opacity:1; transform: translateY(0) scale(1); } }
-    .close { position: absolute; top: 18px; right: 18px; width: 42px; height: 42px; border: 0; border-radius: 999px; background: #fff7f4; color: #88636a; font-size: 24px; }
-    .quick h2 { padding-right: 50px; margin: 0; font-size: 32px; letter-spacing: -.05em; }
-    .choice-section { margin-top: 20px; }
-    .choice-title { display: flex; justify-content: space-between; color: #41516d; font-weight: 900; margin-bottom: 10px; }
-    .choice-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
-    .choice-card { display: grid; place-items: center; gap: 8px; min-height: 100px; border: 1px solid rgba(255,129,108,.18); border-radius: 22px; background: rgba(255,255,255,.72); color: #29364e; font-weight: 900; }
-    .choice-card span { font-size: 30px; }
-    .choice-card strong { font-size: 13px; }
-    .choice-card.active { border-color: rgba(255,129,108,.58); background: linear-gradient(180deg, #fff6f3, #fff); box-shadow: 0 16px 36px rgba(255,129,108,.16); }
-    .quick-inputs { display: grid; gap: 10px; margin-top: 18px; }
-    .quick textarea { min-height: 76px; resize: vertical; }
-    .quick-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
-    .empty { color: #77859a; padding: 20px; border-radius: 22px; background: rgba(255,255,255,.45); }
-    .toast { position: fixed; left: 50%; bottom: 26px; z-index: 100; transform: translateX(-50%); color: white; background: rgba(36,47,68,.93); border-radius: 999px; padding: 12px 18px; box-shadow: 0 18px 50px rgba(36,47,68,.25); font-weight: 800; }
-    @media (max-width: 940px) { .hero-actions { position: relative; top: auto; right: auto; margin-top: 24px; justify-content: flex-start; } .grid { grid-template-columns: 1fr; } .choice-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } .insight-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 560px) { .app { width: calc(100% - 20px); padding-top: 12px; } .hero, .panel { padding: 22px; border-radius: 26px; } .hero h1 { font-size: 62px; } .quick { right: 10px; bottom: 10px; width: calc(100vw - 20px); } }
+    *{box-sizing:border-box} body{margin:0; min-width:320px; min-height:100vh; background:
+      radial-gradient(circle at 15% 6%, rgba(255,126,94,.25), transparent 26%),
+      radial-gradient(circle at 76% 3%, rgba(238,103,168,.20), transparent 28%),
+      radial-gradient(circle at 96% 46%, rgba(151,163,255,.22), transparent 25%),
+      linear-gradient(135deg,#fffaf6 0%,#fff1ef 42%,#f7f1ff 100%);}
+    button,input,textarea,select{font:inherit} button{cursor:pointer}
+    .app{width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:24px 0 80px}
+    .hero{position:relative; overflow:hidden; min-height:270px; padding:44px; border:1px solid rgba(255,255,255,.78); border-radius:34px; background:rgba(255,255,255,.58); box-shadow:0 26px 100px rgba(149,92,110,.12); backdrop-filter:blur(22px)}
+    .hero:after{content:""; position:absolute; inset:auto -8% -55% 55%; height:260px; background:radial-gradient(circle,rgba(237,103,168,.24),transparent 64%); pointer-events:none}
+    .eyebrow{margin:0 0 10px; color:#e66553; font-size:13px; font-weight:900; letter-spacing:.28em; text-transform:uppercase}
+    h1{margin:0; font-size:clamp(58px,9vw,104px); line-height:.9; letter-spacing:-.075em; color:#263149}
+    .lead{max-width:760px; margin:22px 0 0; color:#62718b; font-size:18px; line-height:1.9}
+    .heroActions{position:absolute; top:40px; right:40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-end}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px; background:rgba(255,255,255,.72); border:1px solid rgba(255,139,112,.25); box-shadow:0 12px 30px rgba(149,92,110,.08); color:#df604f; font-weight:900; letter-spacing:.14em}
+    .primary,.ghost,.danger,.textBtn{border:0; border-radius:20px; font-weight:900; transition:transform .16s ease, box-shadow .16s ease, opacity .16s ease}
+    .primary{padding:15px 22px; color:white; background:linear-gradient(135deg,var(--coral),var(--pink) 58%,var(--lav)); box-shadow:0 18px 40px rgba(237,103,168,.30)}
+    .ghost{padding:15px 20px; color:#40506b; background:rgba(255,255,255,.76); border:1px solid rgba(255,139,112,.25)}
+    .danger{padding:12px 16px; color:#c54f58; background:#fff2f0; border:1px solid rgba(255,139,112,.35)}
+    .textBtn{padding:8px 4px; color:#c35364; background:transparent; text-decoration:underline; text-underline-offset:4px}
+    .small{padding:10px 13px; border-radius:14px; font-size:13px}.primary:hover,.ghost:hover,.danger:hover,.textBtn:hover{transform:translateY(-1px)}
+    .layout{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(360px,.85fr); gap:22px; margin-top:22px}.span{grid-column:1/-1}
+    .panel{padding:26px; border:1px solid rgba(255,255,255,.75); border-radius:30px; background:var(--card); box-shadow:0 24px 90px rgba(149,92,110,.09); backdrop-filter:blur(20px)}
+    .sectionHead{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px}.sectionHead h2{margin:0; font-size:28px; letter-spacing:-.05em}.badge{padding:8px 12px; border-radius:999px; color:#c75d50; background:#fff0e9; border:1px solid rgba(255,139,112,.24); font-weight:900}
+    .tabs{display:flex; gap:9px; margin:8px 0 18px}.tab{width:42px; height:42px; border-radius:999px; border:1px solid rgba(255,139,112,.25); color:#6e7890; background:#fff; font-weight:900}.tab.active{color:white; background:linear-gradient(135deg,#ff7d69,#ed67a8); border-color:transparent}
+    .waveCard{padding:20px; border:1px solid var(--line); border-radius:24px; background:linear-gradient(180deg,rgba(255,255,255,.84),rgba(255,250,249,.72))}.waveTop{display:flex; align-items:center; justify-content:space-between; gap:12px}.weather{padding:8px 12px; border-radius:999px; color:#bf6755; background:#fff8f2; border:1px solid rgba(255,139,112,.24); font-weight:900}
+    svg{display:block; width:100%; height:210px; margin-top:12px}.axis{font-size:11px; fill:#9ca7b8}.grid{stroke:#f4d9d1; stroke-width:1}.mid{stroke:#e9ddea; stroke-dasharray:5 7}.area{fill:url(#warmArea)}.line{fill:none; stroke:url(#warmLine); stroke-width:5; stroke-linecap:round; stroke-linejoin:round}.dot{fill:#fff; stroke:#ed67a8; stroke-width:4}
+    .insightGrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px}.insight{min-height:120px; padding:18px; border-radius:22px; background:rgba(255,255,255,.52)}.insight h3{margin:0 0 10px; color:#c8524b; font-size:15px}.insight p{margin:0; color:#61708a; line-height:1.75}
+    .logList{display:grid; gap:12px}.logCard{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; padding:16px; border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.72)}.emojiBox{width:58px; height:58px; display:grid; place-items:center; border-radius:18px; background:linear-gradient(135deg,#fff2ed,#fff)}.emojiBox span{font-size:30px}.logCard h3{margin:0 0 5px; font-size:18px}.logCard p{margin:3px 0; color:#65738a; line-height:1.6}.time{color:#90869a; font-weight:900; font-size:13px}.empty{display:grid; place-items:center; min-height:240px; text-align:center; color:#74829a; border:1px dashed rgba(255,139,112,.35); border-radius:24px}
+    .dailyTextarea{width:100%; min-height:320px; resize:vertical; padding:17px; border:1px solid var(--line); border-radius:20px; background:rgba(255,255,255,.70); color:#39465f; line-height:1.75}.sideActions{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+    .settingsBox{margin-top:18px; padding:18px; border:1px solid var(--line); border-radius:22px; background:linear-gradient(180deg,rgba(255,250,247,.85),rgba(255,255,255,.56))}.settingsBox h3{margin:0 0 8px}.hint{margin:8px 0 0; color:#7c899e; font-size:13px; line-height:1.65}.settingRow{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:13px; color:#46556d; font-weight:800}.settingRow select,.settingsBox input{padding:10px 12px; border:1px solid rgba(255,139,112,.35); border-radius:14px; background:#fff}.taskInput{display:flex; gap:8px; margin-top:12px}.taskInput input{min-width:0; flex:1}.chipRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}.chip{border:1px solid rgba(255,139,112,.3); border-radius:999px; padding:8px 12px; background:#fffaf8; color:#536278; font-weight:800}.statusPill{flex:0 0 auto; padding:7px 10px; border-radius:999px; color:#9a6a2b; background:#fff8e8; border:1px solid rgba(244,190,88,.55); font-size:12px; font-weight:900}.statusPill.granted{color:#2f7a4f;background:#effaf3;border-color:rgba(96,180,123,.45)}.statusPill.denied{color:#b04444;background:#fff1f1;border-color:rgba(255,160,160,.7)}
+    .modalBackdrop{position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:24px; background:rgba(255,245,244,.68); backdrop-filter:blur(12px)}.quick{position:relative; width:min(760px,100%); max-height:92vh; overflow:auto; padding:32px; border:1px solid rgba(255,255,255,.82); border-radius:36px; background:rgba(255,255,255,.92); box-shadow:0 34px 120px rgba(147,82,105,.22)}.close{position:absolute; top:20px; right:20px; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:999px; background:#fff8f7; color:#7d879a; font-size:24px; box-shadow:0 10px 24px rgba(149,92,110,.08)}.quick h2{margin:0; padding-right:54px; font-size:clamp(30px,5vw,48px); letter-spacing:-.06em}.quickLead{margin:10px 0 22px; color:#74829a; font-size:17px}.choiceTitle{display:flex; justify-content:space-between; align-items:center; margin:20px 0 12px}.choiceTitle h3{margin:0}.choiceGrid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px}.choice{display:grid; place-items:center; gap:10px; min-height:118px; padding:14px 8px; border:1px solid rgba(236,205,199,.75); border-radius:24px; background:#fff; color:#29354b; box-shadow:0 18px 44px rgba(149,92,110,.06)}.choice span{font-size:34px}.choice strong{font-size:14px}.choice.selected{border-color:rgba(255,125,105,.65); background:linear-gradient(180deg,#fff6f2,#fff); box-shadow:0 18px 44px rgba(237,103,168,.14)}.quickFields{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px}.quickFields label{display:grid; gap:8px; color:#46556d; font-weight:900}.quickFields input,.quickFields textarea,.quickFields select{width:100%; padding:13px 15px; border:1px solid rgba(255,139,112,.35); border-radius:17px; background:#fff; color:#263149}.quickFields .wide{grid-column:1/-1}.modalActions{display:flex; flex-wrap:wrap; gap:12px; margin-top:22px}
+    .toast{position:fixed; z-index:99; left:50%; bottom:26px; transform:translateX(-50%); padding:12px 18px; border-radius:999px; color:#fff; background:rgba(36,48,71,.92); box-shadow:0 18px 44px rgba(36,48,71,.25); font-weight:800}.version{position:fixed; right:12px; bottom:8px; color:#b98a96; font-size:11px; font-weight:800}
+    @media(max-width:920px){.heroActions{position:static; margin-top:22px; justify-content:flex-start}.layout{grid-template-columns:1fr}.insightGrid{grid-template-columns:1fr}.choiceGrid{grid-template-columns:repeat(2,1fr)}.quickFields{grid-template-columns:1fr}}
+    @media(max-width:560px){.app{width:calc(100% - 20px); padding-top:10px}.hero,.panel,.quick{padding:20px; border-radius:26px}h1{font-size:58px}.choice{min-height:104px}}
   </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app" class="app"></div>
   <script>
-    const STORAGE_KEY = 'namilog.quick-check.logs.v1';
-    const SETTINGS_KEY = 'namilog.quick-check.settings.v1';
-    const TASKS_KEY = 'namilog.tasks.v1';
-    const BASE_PATH = '/Namilog/';
-    const SW_VERSION = '6.2.0';
-
-    const emotions = [
-      { id:'fun', emoji:'😄', label:'楽しい', score:2 },
-      { id:'good', emoji:'🙂', label:'いい感じ', score:1 },
-      { id:'calm', emoji:'😌', label:'穏やか', score:1 },
-      { id:'tired', emoji:'🥺', label:'少ししんどい', score:-1 },
-      { id:'cloudy', emoji:'☁️', label:'モヤモヤ', score:-1 },
+    const STORAGE_KEY='namilog.quick-check.logs.v1';
+    const SETTINGS_KEY='namilog.quick-check.settings.v1';
+    const TASKS_KEY='namilog.taskCandidates.v1';
+    const BASE_PATH='/Namilog/';
+    const VERSION='v7 weekly-insight';
+    const emotions=[
+      {id:'fun',emoji:'😄',label:'楽しい',score:2},{id:'good',emoji:'🙂',label:'いい感じ',score:2},{id:'calm',emoji:'😌',label:'穏やか',score:1},{id:'tired',emoji:'🥺',label:'少ししんどい',score:-2},{id:'cloudy',emoji:'☁️',label:'モヤモヤ',score:-1}
     ];
-    const progresses = [
-      { id:'moved', emoji:'🚀', label:'進んだ', score:2 },
-      { id:'little', emoji:'🌱', label:'少し進んだ', score:1 },
-      { id:'okay', emoji:'👌', label:'まあまあ', score:1 },
-      { id:'scattered', emoji:'🌀', label:'散らかった', score:-1 },
-      { id:'stuck', emoji:'🧱', label:'詰まった', score:-2 },
-      { id:'paused', emoji:'⏸️', label:'止まってる', score:-1 },
+    const progresses=[
+      {id:'smooth',emoji:'🚀',label:'順調',score:2},{id:'okay',emoji:'👌',label:'まあまあ',score:1},{id:'little',emoji:'🌱',label:'少し進んだ',score:1},{id:'scattered',emoji:'🌀',label:'散らかった',score:-1},{id:'stuck',emoji:'🧱',label:'詰まった',score:-2}
     ];
-    const defaultTasks = ['資料作成','会議','顧客対応','研修','1on1','実装','考える時間','日報'];
+    const defaultTasks=['資料作成','会議','顧客対応','研修','1on1','実装','考える時間','日報'];
+    const defaultSettings={intervalMinutes:120, browserNotification:false};
+    let state={logs:loadLogs(),settings:loadSettings(),tasks:loadTasks(),range:'day',quickOpen:false,draft:blankDraft(),toast:'',permission:getPermission(),registration:null,filterTask:'',newTask:''};
 
-    let intervalId = null;
-    let state = {
-      logs: load(STORAGE_KEY, []),
-      settings: { intervalMinutes: 120, browserNotification: false, autoPopup: false, ...load(SETTINGS_KEY, {}) },
-      tasks: load(TASKS_KEY, defaultTasks),
-      period: 'day',
-      quickOpen: new URLSearchParams(location.search).get('quickCheck') === '1' || load(STORAGE_KEY, []).length === 0,
-      draft: emptyDraft(),
-      toast: '',
-      permission: notificationPermission(),
-      swRegistration: null,
-    };
-
-    if (new URLSearchParams(location.search).get('quickCheck') === '1') {
-      history.replaceState({}, '', location.pathname);
-    }
-
-    initSW();
-    render();
-    setupTimers();
-
-    document.addEventListener('click', (event) => {
-      const actionEl = event.target.closest('[data-action]');
-      if (actionEl) {
-        event.preventDefault();
-        const action = actionEl.dataset.action;
-        if (actions[action]) actions[action](actionEl, event);
-        return;
-      }
-
-      const periodEl = event.target.closest('[data-period]');
-      if (periodEl) { state.period = periodEl.dataset.period; render(); return; }
-
-      const emotionEl = event.target.closest('[data-emotion]');
-      if (emotionEl) {
-        state.draft.emotion = emotions.find(e => e.id === emotionEl.dataset.emotion) || null;
-        render(); return;
-      }
-
-      const progressEl = event.target.closest('[data-progress]');
-      if (progressEl) {
-        state.draft.progress = progresses.find(p => p.id === progressEl.dataset.progress) || null;
-        render(); return;
-      }
-
-      const taskEl = event.target.closest('[data-task]');
-      if (taskEl) { state.draft.task = taskEl.dataset.task || ''; render(); return; }
-
-      const taskPickEl = event.target.closest('[data-task-pick]');
-      if (taskPickEl) { state.draft.task = taskPickEl.dataset.taskPick || ''; state.quickOpen = true; render(); }
-    });
-
-    document.addEventListener('input', (event) => {
-      if (event.target.id === 'draftMemo') state.draft.memo = event.target.value;
-      if (event.target.id === 'draftNext') state.draft.nextAction = event.target.value;
-      if (event.target.id === 'draftTask') state.draft.task = event.target.value;
-      if (event.target.id === 'taskInput') return;
-    });
-
-    document.addEventListener('change', (event) => {
-      const el = event.target.closest('[data-setting]');
-      if (!el) return;
-      const key = el.dataset.setting;
-      if (el.type === 'checkbox') state.settings[key] = el.checked;
-      else state.settings[key] = Number(el.value);
-      save(SETTINGS_KEY, state.settings);
-      setupTimers();
-      render();
-    });
-
-    function load(key, fallback){ try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
-    function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-    function emptyDraft(){ return { emotion:null, progress:null, task:'', memo:'', nextAction:'' }; }
-    function nowId(){ return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
-    function fmtTime(s){ return new Date(s).toLocaleTimeString('ja-JP',{hour:'2-digit', minute:'2-digit'}); }
-    function fmtDate(s){ return new Date(s).toLocaleDateString('ja-JP',{year:'numeric', month:'2-digit', day:'2-digit', weekday:'short'}); }
-    function dayKey(d){ return new Date(d).toLocaleDateString('ja-JP'); }
-    function notificationPermission(){ if(!('Notification' in window)) return 'unsupported'; return Notification.permission; }
-    function finiteNumber(value, fallback=0){ const n = Number(value); return Number.isFinite(n) ? n : fallback; }
-    function resolveEmotion(value){
-      if (!value) return null;
-      if (typeof value === 'string') return emotions.find(e => [e.id,e.label,e.emoji].includes(value)) || { id:'custom', label:value, emoji:'🌊', score:0 };
-      return emotions.find(e => e.id === value.id || e.label === value.label || e.emoji === value.emoji) || { ...value, score: finiteNumber(value.score, 0) };
-    }
-    function resolveProgress(value){
-      if (!value) return null;
-      if (typeof value === 'string') return progresses.find(p => [p.id,p.label,p.emoji].includes(value)) || { id:'custom', label:value, emoji:'', score:0 };
-      const found = progresses.find(p => p.id === value.id || p.label === value.label || p.emoji === value.emoji);
-      if (found) return found;
-      return { ...value, score: finiteNumber(value.score, 0) };
-    }
+    function blankDraft(){return{emotion:null,progress:null,task:'',memo:'',nextAction:''}}
+    function safeParse(raw,fallback){try{return raw?JSON.parse(raw):fallback}catch{return fallback}}
+    function loadLogs(){return safeParse(localStorage.getItem(STORAGE_KEY),[]).map(normalizeLog).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))}
+    function loadSettings(){return {...defaultSettings,...safeParse(localStorage.getItem(SETTINGS_KEY),{})}}
+    function loadTasks(){const raw=safeParse(localStorage.getItem(TASKS_KEY),null); return Array.isArray(raw)&&raw.length?raw:defaultTasks}
+    function saveLogs(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state.logs))}
+    function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(state.settings))}
+    function saveTasks(){localStorage.setItem(TASKS_KEY,JSON.stringify(state.tasks))}
+    function getPermission(){if(!('Notification' in window)) return 'unsupported'; return Notification.permission}
+    function findEmotion(x){if(!x)return null; return emotions.find(e=>e.id===x.id||e.label===x.label||e.emoji===x.emoji)||x}
+    function findProgress(x){if(!x)return null; const alias={'少しずつ':'少し進んだ','バタついてる':'散らかった','進んでない':'詰まった'}; return progresses.find(p=>p.id===x.id||p.label===x.label||p.label===alias[x.label]||p.emoji===x.emoji)||x}
     function normalizeLog(log){
-      const emotion = resolveEmotion(log.emotion);
-      const progress = resolveProgress(log.progress);
-      return {
-        ...log,
-        emotion,
-        progress,
-        emotionScore: finiteNumber(log.emotionScore, finiteNumber(emotion && emotion.score, 0)),
-        progressScore: finiteNumber(log.progressScore, finiteNumber(progress && progress.score, 0)),
-        task: log.task || log.taskName || '',
-        memo: log.memo || '',
-        nextAction: log.nextAction || '',
-      };
+      const emotion=findEmotion(log.emotion); const progress=findProgress(log.progress);
+      return {...log, id:log.id||String(Date.now()+Math.random()), createdAt:log.createdAt||new Date().toISOString(), emotion, progress, task:log.task||log.taskName||'', memo:log.memo||'', nextAction:log.nextAction||'', emotionScore:Number.isFinite(log.emotionScore)?log.emotionScore:(emotion?.score??0), progressScore:Number.isFinite(log.progressScore)?log.progressScore:(progress?.score??0)};
     }
-    function logs(){ return state.logs.map(normalizeLog).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); }
-    function todayLogs(){ const today = dayKey(new Date()); return logs().filter(l => dayKey(l.createdAt) === today); }
-    function periodLogs(){
-      const all = logs();
-      const days = state.period === 'month' ? 31 : state.period === 'week' ? 7 : 1;
-      const min = new Date(); min.setDate(min.getDate() - (days - 1)); min.setHours(0,0,0,0);
-      return all.filter(l => new Date(l.createdAt) >= min).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+    function fmtTime(s){return new Date(s).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}
+    function fmtDate(s=new Date()){return new Date(s).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})}
+    function startOf(range){const d=new Date(); d.setHours(0,0,0,0); if(range==='week') d.setDate(d.getDate()-6); if(range==='month') d.setDate(d.getDate()-29); return d}
+    function rangeLogs(range=state.range){const start=startOf(range); return state.logs.filter(l=>new Date(l.createdAt)>=start)}
+    function todayLogs(){return rangeLogs('day')}
+    function scoreOf(log){const e=Number.isFinite(log.emotionScore)?log.emotionScore:0; const p=Number.isFinite(log.progressScore)?log.progressScore:0; return Math.max(-2,Math.min(2,(e+p)/2))}
+    function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0}
+    function topBy(items){const m={}; items.filter(Boolean).forEach(v=>m[v]=(m[v]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]}
+    function weatherFor(score){if(score>=1.4)return'☀️ 晴れ'; if(score>=.4)return'🌤️ 晴れ時々くもり'; if(score>=-.3)return'☁️ くもり'; if(score>=-1.2)return'🌧️ 小雨'; return'⛈️ 荒れ模様'}
+    function wordsFrom(logs){
+      const stop=['です','ます','した','する','こと','これ','それ','ため','今日','明日','確認','対応','作業','感じ','少し'];
+      const text=logs.map(l=>[l.task,l.memo,l.nextAction].join(' ')).join(' ');
+      const tokens=(text.match(/[ぁ-んァ-ン一-龠A-Za-z0-9]{2,}/g)||[]).filter(w=>!stop.includes(w));
+      const m={}; tokens.forEach(w=>m[w]=(m[w]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8);
     }
-    function score(log){ return finiteNumber(log.emotionScore, 0) + finiteNumber(log.progressScore, 0); }
-    function weather(avg){ if(avg >= 2.2) return '☀️ 晴れ'; if(avg >= 0.8) return '🌤 晴れ時々くもり'; if(avg >= -0.5) return '☁️ くもり'; if(avg >= -1.8) return '🌧 小雨'; return '⛈ 荒れ模様'; }
-    function most(arr, get){ const map = {}; arr.forEach(x => { const k = get(x); if(k) map[k] = (map[k] || 0) + 1; }); return Object.entries(map).sort((a,b)=>b[1]-a[1])[0]?.[0] || ''; }
-    function wordsIn(text){ return (text || '').replace(/[、。,.!！?？\n]/g,' ').split(/\s+/).filter(w => w.length >= 2 && !['です','ます','こと','ため','今日','明日'].includes(w)); }
-    function insights(){
-      const ps = periodLogs();
-      const avg = ps.length ? ps.reduce((a,l) => a + score(l), 0) / ps.length : 0;
-      const topEmotion = most(ps, l => l.emotion && l.emotion.label);
-      const topProgress = most(ps, l => l.progress && l.progress.label);
-      const words = {}; ps.forEach(l => wordsIn(`${l.task} ${l.memo} ${l.nextAction}`).forEach(w => words[w] = (words[w] || 0) + 1));
-      const topWords = Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([w])=>w);
-      const taskMap = {};
-      ps.forEach(l => { const t = l.task || 'タスク未設定'; (taskMap[t] ||= []).push(score(l)); });
-      const taskScores = Object.entries(taskMap).map(([task, arr]) => ({ task, avg: arr.reduce((a,b)=>a+b,0)/arr.length, count: arr.length })).sort((a,b)=>a.avg-b.avg);
-      return { ps, avg, weather: weather(avg), topEmotion, topProgress, topWords, lowTask: taskScores[0], highTask: taskScores[taskScores.length-1] };
-    }
-    function taskInsightText(ins){
-      if (!ins.lowTask || ins.lowTask.task === 'タスク未設定') return 'タスクを記録すると、波が上下しやすい仕事を見つけられます。';
-      if (ins.lowTask.avg < -0.5) return `「${ins.lowTask.task}」のとき波が下がりやすそうです。面談で詰まりや負荷を話すたねになります。`;
-      return `「${ins.highTask?.task || ins.lowTask.task}」のとき波が安定しやすそうです。再現条件を探せます。`;
+    function taskStats(logs){
+      const map={}; logs.forEach(l=>{const t=l.task||'タスク未設定'; if(!map[t])map[t]=[]; map[t].push(scoreOf(l));});
+      return Object.entries(map).map(([task,scores])=>({task,count:scores.length,avg:avg(scores)})).sort((a,b)=>a.avg-b.avg);
     }
     function dailyText(){
-      const ts = todayLogs().slice().reverse();
-      const ins = insights();
-      const lines = ts.map(l => `- ${fmtTime(l.createdAt)} ${l.emotion?.emoji || '🌊'} ${l.emotion?.label || '未選択'}${l.progress ? ` / ${l.progress.emoji} ${l.progress.label}` : ''}${l.task ? `｜${l.task}` : ''}${l.memo ? `\n  - メモ：${l.memo}` : ''}${l.nextAction ? `\n  - 次：${l.nextAction}` : ''}`);
-      return [`# NamiLog 日報 ${fmtDate(new Date().toISOString())}`,'','## 今日のこころ天気',`- ${ins.weather}`,'','## 今日の波の記録',...(lines.length ? lines : ['- まだ記録はありません。']),'','## 今日のふりかえりのたね',`- 多かった感情：${ins.topEmotion || 'まだ少なめ'}`,`- 目立った進捗：${ins.topProgress || 'まだ少なめ'}`,`- よく出た言葉：${ins.topWords.length ? ins.topWords.join('・') : 'これから拾えます'}`,'','## 上長面談のたね',`- ${taskInsightText(ins)}`,'','## 明日の一手','- '].join('\n');
+      const logs=todayLogs().slice().reverse(); const wLogs=rangeLogs('week'); const score=avg(logs.map(scoreOf)); const weekly=makeWeeklyInsights(wLogs);
+      if(!logs.length)return '今日はまだ波の記録がありません。';
+      return [`# NamiLog 日報 ${fmtDate()}`,'',`## 今日のこころ天気`,`- ${weatherFor(score)}。平均スコアは ${score.toFixed(1)} です。`,'','## 今日の波の記録',...logs.map(l=>`- ${fmtTime(l.createdAt)} ${l.emotion?.emoji||''} ${l.emotion?.label||''}${l.progress?` / ${l.progress.emoji} ${l.progress.label}`:''}${l.task?`｜${l.task}`:''}${l.memo?`\n  - メモ：${l.memo}`:''}${l.nextAction?`\n  - 次：${l.nextAction}`:''}`),'','## 今日のまとめ','- 気分の波：','- 進んだこと：','- 詰まったこと：','- 明日の一手：','','## 上長面談のたね',...weekly.managerSeeds.map(x=>`- ${x}`)].join('\n')
     }
-    function escapeHtml(value){ return String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
-    function escapeAttr(value){ return escapeHtml(value).replace(/'/g, '&#39;'); }
-    function permissionLabel(){ if(state.permission === 'granted') return '許可済み'; if(state.permission === 'denied') return 'ブロック中'; if(state.permission === 'unsupported') return '非対応'; return '未許可'; }
-
+    function weeklyText(){const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); return [`# NamiLog 週報のたね ${fmtDate()}`,'',`## 今週のこころ天気`,`- ${insights.weather}。${insights.summary}`,'','## 目立った波','- 良かった時間・タスク：','- しんどかった時間・タスク：','- 回復につながった要素：','','## よく出た言葉',...(insights.words.length?insights.words.map(([w,c])=>`- ${w}：${c}回`):['- まだ十分なメモがありません']),'','## 上長面談のたね',...insights.managerSeeds.map(x=>`- ${x}`),'','## 来週の一手','- '].join('\n')}
+    function makeWeeklyInsights(logs){
+      const score=avg(logs.map(scoreOf)); const weather=weatherFor(score); const topEmotion=topBy(logs.map(l=>l.emotion?.label)); const topProgress=topBy(logs.map(l=>l.progress?.label)); const stats=taskStats(logs); const low=stats[0]; const high=stats.slice().reverse()[0]; const words=wordsFrom(logs);
+      const seeds=[]; if(low&&low.count>=1&&low.avg<0) seeds.push(`「${low.task}」のとき波が下がりやすそうです。詰まり方や支援が必要な点を話す材料になります。`); if(high&&high.count>=1&&high.avg>0) seeds.push(`「${high.task}」のとき比較的よい波が出ています。得意な進め方の再現条件を探せます。`); if(topProgress) seeds.push(`進捗は「${topProgress[0]}」が目立ちました。忙しさより前進感があるかを見るとよさそうです。`); if(!seeds.length) seeds.push('まだ面談材料にするにはログが少なめです。通知から数件ためるところから始めましょう。');
+      return {score,weather,topEmotion,topProgress,words,managerSeeds:seeds, summary:`感情は「${topEmotion?topEmotion[0]:'未記録'}」、進捗は「${topProgress?topProgress[0]:'未記録'}」が目立ちます。`};
+    }
+    function escape(s=''){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
     function render(){
-      const ins = insights();
-      document.getElementById('app').innerHTML = `
-        <div class="app">
-          <div class="topbar"><div class="brand"><div class="brand-chip">NamiLog</div><div class="brand-main"><span class="brand-icon">〜</span><span>NamiLog</span></div></div><div class="mini-status">v6.2 hotfix</div></div>
-          <section class="hero"><div><p class="eyebrow">Namilog</p><h1>NamiLog</h1><p>感情の波と仕事の進み方を、やさしく見える化するログアプリです。小さな記録から、日報・週報・面談のたねまで自然につなげます。</p></div><div class="hero-actions"><button class="primary" data-action="openQuick">今の波を残す</button><button class="ghost" data-action="copyDaily">日報をコピー</button></div></section>
-          <main class="grid">
-            <section class="panel"><div class="section-head"><div><p class="eyebrow">Motivation Wave</p><h2>モチベーションの波</h2></div><span class="badge">${periodLogs().length}件</span></div><div class="tabs"><button class="tab ${state.period==='day'?'active':''}" data-period="day">日</button><button class="tab ${state.period==='week'?'active':''}" data-period="week">週</button><button class="tab ${state.period==='month'?'active':''}" data-period="month">月</button></div><div class="chart-card"><div class="chart-top"><h3>今の波形</h3><span class="badge">${ins.weather}</span></div>${chartSvg(periodLogs())}</div><div class="insight-grid"><div class="insight"><h4>今のこころ天気</h4><p>${ins.weather}。平均スコアは ${ins.avg.toFixed(1)} です。</p></div><div class="insight"><h4>多かった感情と進捗</h4><p>感情は「${ins.topEmotion || 'まだ少なめ'}」、進捗は「${ins.topProgress || 'まだ少なめ'}」が目立ちます。</p></div><div class="insight"><h4>よく出た言葉</h4><p>${ins.topWords.length ? ins.topWords.join('・') : 'タスクやメモが増えると、よく出た言葉を拾えます。'}</p></div><div class="insight"><h4>タスクとのつながり</h4><p>${taskInsightText(ins)}</p></div></div><div style="margin-top:28px"><div class="section-head"><div><p class="eyebrow">Today</p><h2>今日の波</h2></div><span class="badge">${todayLogs().length}件</span></div>${logsHtml(todayLogs())}</div></section>
-            <aside class="panel"><div class="section-head"><div><p class="eyebrow">Daily Reflection</p><h2>日報のたね</h2></div></div><textarea class="daily" readonly>${escapeHtml(dailyText())}</textarea><div class="side-actions"><button class="primary small" data-action="copyDaily">コピー</button><button class="ghost small" data-action="exportJson">JSON出力</button><button class="danger small" data-action="clearAll">全削除</button></div><div class="settings"><div class="section-head"><div><h3>リマインド通知</h3><p class="hint">他の作業中でも、Windows右下からNamiLogがそっと声をかけます。</p></div><span class="status ${state.permission}">${permissionLabel()}</span></div><div class="side-actions"><button class="primary small" data-action="requestNotify">通知オン</button><button class="ghost small" data-action="testNotify">テスト通知</button></div><label class="setting-row"><span>定期的に声をかけてもらう</span><input type="checkbox" data-setting="browserNotification" ${state.settings.browserNotification?'checked':''}></label><label class="setting-row"><span>間隔</span><select data-setting="intervalMinutes"><option value="30">30分</option><option value="60">1時間</option><option value="120">2時間</option><option value="180">3時間</option></select></label><p class="hint">通知クリックでQuick Checkが開きます。定期通知はNamiLogを開いている間に動きます。</p></div><div class="settings"><h3>今日のタスク候補</h3><p class="hint">Googleカレンダー同期の前段階として、予定候補を手で足せます。Quick Checkで選ぶと分析に使えます。</p><div class="side-actions"><input class="task-input" id="taskInput" placeholder="例：商談準備、1on1、週報" /><button class="ghost small" data-action="addTask">追加</button></div><div class="task-list">${state.tasks.map(t => `<button class="task-pill" data-task-pick="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('')}</div></div></aside>
-          </main>${state.quickOpen ? quickHtml() : ''}${state.toast ? `<div class="toast">${escapeHtml(state.toast)}</div>` : ''}
-        </div>`;
-      const intervalSelect = document.querySelector('select[data-setting="intervalMinutes"]'); if(intervalSelect) intervalSelect.value = state.settings.intervalMinutes;
+      const logs=rangeLogs(); const tLogs=todayLogs(); const insights=makeWeeklyInsights(rangeLogs('week')); const allTasks=state.tasks;
+      document.getElementById('app').innerHTML=`
+        <section class="hero">
+          <span class="pill">〜 NamiLog</span><p class="eyebrow" style="margin-top:28px">NAMILOG</p><h1>NamiLog</h1>
+          <p class="lead">感情の波と仕事の進み方を、やさしく見える化するログアプリです。小さな記録から、日報・週報・面談のヒントまで自然につなげます。</p>
+          <div class="heroActions"><button class="primary" data-action="openQuick">今の波を残す</button><button class="ghost" data-action="copyDaily">日報をコピー</button></div>
+        </section>
+        <main class="layout">
+          <section class="panel">
+            <div class="sectionHead"><div><p class="eyebrow">MOTIVATION WAVE</p><h2>モチベーションの波</h2></div><span class="badge">${logs.length}件</span></div>
+            <div class="tabs"><button class="tab ${state.range==='day'?'active':''}" data-range="day">日</button><button class="tab ${state.range==='week'?'active':''}" data-range="week">週</button><button class="tab ${state.range==='month'?'active':''}" data-range="month">月</button></div>
+            <div class="waveCard"><div class="waveTop"><h3>今の波形</h3><span class="weather">${insights.weather}</span></div>${waveSvg(logs)}</div>
+            <div class="insightGrid">
+              <div class="insight"><h3>今のこころ天気</h3><p>${insights.weather}。平均スコアは ${insights.score.toFixed(1)} です。</p></div>
+              <div class="insight"><h3>多かった感情と進捗</h3><p>感情は「${insights.topEmotion?insights.topEmotion[0]:'未記録'}」、進捗は「${insights.topProgress?insights.topProgress[0]:'未記録'}」が目立ちます。</p></div>
+              <div class="insight"><h3>よく出た言葉</h3><p>${insights.words.length?insights.words.map(([w,c])=>`${escape(w)}(${c})`).join('、'):'タスクやメモが増えると、よく出た言葉を拾えます。'}</p></div>
+              <div class="insight"><h3>上長面談のたね</h3><p>${insights.managerSeeds[0]}</p></div>
+            </div>
+          </section>
+          <aside class="panel"><div class="sectionHead"><div><p class="eyebrow">DAILY REFLECTION</p><h2>日報のたね</h2></div></div><textarea class="dailyTextarea" readonly>${escape(dailyText())}</textarea><div class="sideActions"><button class="primary small" data-action="copyDaily">コピー</button><button class="ghost small" data-action="copyWeekly">週報コピー</button><button class="ghost small" data-action="exportJson">JSON出力</button><button class="danger small" data-action="clearAll">全削除</button></div>
+            ${settingsHtml()}
+            <div class="settingsBox"><h3>今日のタスク候補</h3><p class="hint">Googleカレンダー同期前の段階として、予定候補を手で足せます。Quick Checkで選ぶと分析に使えます。</p><div class="taskInput"><input id="newTask" placeholder="例：商談準備、週報、1on1" value="${escape(state.newTask)}"><button class="ghost small" data-action="addTask">追加</button></div><div class="chipRow">${allTasks.map(t=>`<button class="chip" data-task="${escape(t)}">${escape(t)}</button>`).join('')}</div></div>
+          </aside>
+          <section class="panel"><div class="sectionHead"><div><p class="eyebrow">TODAY</p><h2>今日の波</h2></div><span class="badge">${tLogs.length}件</span></div>${logList(tLogs)}</section>
+          <section class="panel"><div class="sectionHead"><div><p class="eyebrow">1ON1 SEEDS</p><h2>上長面談のたね</h2></div></div><div class="logList">${insights.managerSeeds.map(s=>`<article class="logCard" style="grid-template-columns:auto 1fr"><div class="emojiBox"><span>💬</span></div><div><h3>話す価値がありそう</h3><p>${escape(s)}</p></div></article>`).join('')}</div></section>
+        </main><div class="version">${VERSION}</div>${state.quickOpen?quickModal():''}${state.toast?`<div class="toast">${escape(state.toast)}</div>`:''}`;
+      bindEvents();
     }
-
-    function quickHtml(){ return `<div class="quick"><button class="close" data-action="closeQuick">×</button><p class="eyebrow">Quick Check</p><h2>今の波を教えてね</h2><p class="hint">感情と進み具合を残すと、あとから日報・週報のたねになります。</p><div class="choice-section"><div class="choice-title"><span>感情</span><span>1つ選択</span></div><div class="choice-grid">${emotions.map(e => `<button class="choice-card ${state.draft.emotion?.id===e.id?'active':''}" data-emotion="${e.id}"><span>${e.emoji}</span><strong>${e.label}</strong></button>`).join('')}</div></div><div class="choice-section"><div class="choice-title"><span>仕事の進み具合</span><span>任意だけど推奨</span></div><div class="choice-grid">${progresses.map(p => `<button class="choice-card ${state.draft.progress?.id===p.id?'active':''}" data-progress="${p.id}"><span>${p.emoji}</span><strong>${p.label}</strong></button>`).join('')}</div></div><div class="choice-section"><div class="choice-title"><span>タスク</span><span>カレンダー同期の前段階</span></div><div class="task-list">${state.tasks.slice(0,8).map(t => `<button class="choice ${state.draft.task===t?'active':''}" data-task="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('')}</div></div><div class="quick-inputs"><input id="draftTask" value="${escapeAttr(state.draft.task)}" placeholder="タスクを直接入力" /><textarea id="draftMemo" placeholder="ひとことメモ。空でもOK">${escapeHtml(state.draft.memo)}</textarea><input id="draftNext" value="${escapeAttr(state.draft.nextAction)}" placeholder="次にやること。空でもOK" /></div><div class="quick-actions"><button class="primary" data-action="saveQuick">この波を残す</button><button class="text-btn" data-action="closeQuick">あとで</button></div></div>`; }
-    function logsHtml(items){ if(!items.length) return '<div class="empty">まだ記録はありません。今の波をひとつ残してみましょう。</div>'; return `<div class="logs">${items.map(l => `<article class="log"><div class="log-emoji">${l.emotion?.emoji || '🌊'}</div><div class="log-body"><div class="log-meta"><span>${fmtTime(l.createdAt)}</span>${l.task ? `<span>${escapeHtml(l.task)}</span>` : ''}</div><div class="log-title">${escapeHtml(l.emotion?.label || '未選択')}${l.progress ? ` / ${l.progress.emoji} ${escapeHtml(l.progress.label)}` : ''}</div>${l.memo ? `<p>メモ：${escapeHtml(l.memo)}</p>` : ''}${l.nextAction ? `<p>次：${escapeHtml(l.nextAction)}</p>` : ''}</div><button class="delete" data-action="deleteLog" data-id="${l.id}">削除</button></article>`).join('')}</div>`; }
-    function chartSvg(items){
-      const width = 720, height = 260, pad = 36, min = -4, max = 4;
-      if (!items.length) return `<div class="empty">記録が増えると波形が出ます。</div>`;
-      const pts = items.map((l,i) => { const x = items.length === 1 ? width / 2 : pad + i * ((width - pad*2) / (items.length - 1)); const y = pad + (max - score(l)) * ((height - pad*2) / (max - min)); return { x, y: Math.max(pad, Math.min(height-pad, y)), l }; });
-      const path = pts.map((p,i) => `${i?'L':'M'}${p.x},${p.y}`).join(' ');
-      const tickEvery = Math.max(1, Math.ceil(pts.length / 5));
-      return `<svg id="waveChart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><defs><linearGradient id="line" x1="0" x2="1"><stop stop-color="#ff816c"/><stop offset=".55" stop-color="#ef6faf"/><stop offset="1" stop-color="#9aa9ff"/></linearGradient><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ef6faf" stop-opacity=".26"/><stop offset="1" stop-color="#9aa9ff" stop-opacity=".02"/></linearGradient></defs><line x1="${pad}" x2="${width-pad}" y1="${pad}" y2="${pad}" stroke="#ffe2dc"/><line x1="${pad}" x2="${width-pad}" y1="${height/2}" y2="${height/2}" stroke="#e7ddf1" stroke-dasharray="6 8"/><line x1="${pad}" x2="${width-pad}" y1="${height-pad}" y2="${height-pad}" stroke="#e7eaf5"/><text x="8" y="${pad+5}" fill="#9aa0ad" font-size="12">高</text><text x="8" y="${height/2+5}" fill="#9aa0ad" font-size="12">中</text><text x="8" y="${height-pad+5}" fill="#9aa0ad" font-size="12">低</text><path d="${path} L${pts[pts.length-1].x},${height-pad} L${pts[0].x},${height-pad} Z" fill="url(#fill)"/><path d="${path}" fill="none" stroke="url(#line)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="6" fill="#fff" stroke="#ef6faf" stroke-width="4"/>`).join('')}${pts.map((p,i) => i % tickEvery === 0 ? `<text x="${p.x-16}" y="${height-8}" fill="#9aa0ad" font-size="10">${fmtTime(p.l.createdAt)}</text>` : '').join('')}</svg>`;
+    function waveSvg(logs){
+      const ordered=logs.slice().reverse(); const w=740,h=210,pad=38; const n=Math.max(ordered.length,1); const pts=ordered.length?ordered.map((l,i)=>{const x=pad+(i/(Math.max(n-1,1)))*(w-pad*2); const y=pad+((2-scoreOf(l))/4)*(h-pad*2); return [x,y,l]}):[[pad,h/2,null],[w-pad,h/2,null]];
+      const d=pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' '); const area=`M${pts[0][0]} ${h-pad} `+pts.map(p=>`L${p[0]} ${p[1]}`).join(' ')+` L${pts[pts.length-1][0]} ${h-pad} Z`; const labels=pts.filter((_,i)=>i===0||i===pts.length-1||i%4===0).map(([x,y,l])=>`<text class="axis" x="${x}" y="${h-8}" text-anchor="middle">${l?fmtTime(l.createdAt):''}</text>`).join('');
+      return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="モチベーションの波"><defs><linearGradient id="warmLine" x1="0" x2="1"><stop offset="0%" stop-color="#ff7d69"/><stop offset="55%" stop-color="#ed67a8"/><stop offset="100%" stop-color="#9ca4ff"/></linearGradient><linearGradient id="warmArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ed67a8" stop-opacity=".20"/><stop offset="100%" stop-color="#9ca4ff" stop-opacity=".03"/></linearGradient></defs><line class="grid" x1="${pad}" y1="${pad}" x2="${w-pad}" y2="${pad}"/><line class="mid" x1="${pad}" y1="${h/2}" x2="${w-pad}" y2="${h/2}"/><line class="grid" x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}"/><text class="axis" x="12" y="${pad+4}">高</text><text class="axis" x="12" y="${h/2+4}">中</text><text class="axis" x="12" y="${h-pad+4}">低</text><path class="area" d="${area}"/><path class="line" d="${d}"/>${pts.map(([x,y])=>`<circle class="dot" cx="${x}" cy="${y}" r="5"/>`).join('')}${labels}</svg>`
     }
-
-    const actions = {
-      openQuick(){ state.draft = emptyDraft(); state.quickOpen = true; render(); },
-      closeQuick(){ state.quickOpen = false; render(); },
-      saveQuick(){ saveQuick(); },
-      copyDaily(){ navigator.clipboard.writeText(dailyText()).then(() => toast('日報のたねをコピーしました')).catch(() => toast('コピーに失敗しました')); },
-      exportJson(){ const blob = new Blob([JSON.stringify(logs(), null, 2)], { type:'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `namilog-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); },
-      clearAll(){ if(confirm('すべてのログを削除しますか？')){ state.logs = []; save(STORAGE_KEY, state.logs); toast('すべて削除しました'); render(); } },
-      addTask(){ const input = document.getElementById('taskInput'); const value = input?.value.trim(); if(!value) return; if(!state.tasks.includes(value)) state.tasks = [value, ...state.tasks]; save(TASKS_KEY, state.tasks); toast('タスク候補を追加しました'); render(); },
-      requestNotify(){ requestNotifications(); },
-      testNotify(){ showBrowserNotification('manual'); },
-      deleteLog(el){ const id = el.dataset.id; state.logs = state.logs.filter(l => l.id !== id); save(STORAGE_KEY, state.logs); toast('削除しました'); render(); },
-    };
-
+    function logList(logs){if(!logs.length)return`<div class="empty"><div><p style="font-size:42px;margin:0">🌤️</p><h3>まだ波の記録がありません</h3><p>「今の波を残す」から、まず1件だけ残してみましょう。</p></div></div>`; return `<div class="logList">${logs.map(l=>`<article class="logCard"><div class="emojiBox"><span>${l.emotion?.emoji||'〜'}</span></div><div><div class="time">${fmtTime(l.createdAt)}</div><h3>${escape(l.emotion?.label||'未選択')}${l.progress?` / ${l.progress.emoji} ${escape(l.progress.label)}`:''}</h3>${l.task?`<p>タスク：${escape(l.task)}</p>`:''}${l.memo?`<p>メモ：${escape(l.memo)}</p>`:''}${l.nextAction?`<p>次：${escape(l.nextAction)}</p>`:''}</div><button class="danger small" data-delete="${l.id}">削除</button></article>`).join('')}</div>`}
+    function settingsHtml(){const label=state.permission==='granted'?'許可済み':state.permission==='denied'?'ブロック中':state.permission==='unsupported'?'非対応':'未許可'; return `<div class="settingsBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>リマインド通知</h3><p class="hint">他の作業中でも、Windows右下からNamiLogがそっと声をかけます。</p></div><span class="statusPill ${state.permission}">${label}</span></div><div class="sideActions"><button class="primary small" data-action="requestNotify">通知オン</button><button class="ghost small" data-action="testNotify">テスト通知</button></div><label class="settingRow"><span>定期的に声をかけてもらう</span><input type="checkbox" data-action="toggleNotify" ${state.settings.browserNotification?'checked':''}></label><label class="settingRow"><span>間隔</span><select data-action="interval"><option value="30" ${state.settings.intervalMinutes==30?'selected':''}>30分</option><option value="60" ${state.settings.intervalMinutes==60?'selected':''}>1時間</option><option value="120" ${state.settings.intervalMinutes==120?'selected':''}>2時間</option><option value="180" ${state.settings.intervalMinutes==180?'selected':''}>3時間</option></select></label><p class="hint">通知クリックでQuick Checkが開きます。定期通知はNamiLogを開いている間に動きます。</p></div>`}
+    function quickModal(){const d=state.draft; return `<div class="modalBackdrop"><div class="quick"><button class="close" data-action="closeQuick">×</button><p class="eyebrow">QUICK CHECK</p><h2>今の波を残そう</h2><p class="quickLead">感情と進み具合を選ぶだけで、日報と週報のたねになります。</p><div class="choiceTitle"><h3>感情</h3><span>1つ選択</span></div><div class="choiceGrid">${emotions.map(e=>`<button class="choice ${d.emotion?.id===e.id?'selected':''}" data-emotion="${e.id}"><span>${e.emoji}</span><strong>${e.label}</strong></button>`).join('')}</div><div class="choiceTitle"><h3>仕事の進み具合</h3><span>任意</span></div><div class="choiceGrid">${progresses.map(p=>`<button class="choice ${d.progress?.id===p.id?'selected':''}" data-progress="${p.id}"><span>${p.emoji}</span><strong>${p.label}</strong></button>`).join('')}</div><div class="quickFields"><label><span>今のタスク</span><select id="draftTask"><option value="">選択なし</option>${state.tasks.map(t=>`<option value="${escape(t)}" ${d.task===t?'selected':''}>${escape(t)}</option>`).join('')}</select></label><label><span>30秒メモ</span><input id="draftMemo" placeholder="例：少し詰まったが前進あり" value="${escape(d.memo)}"></label><label class="wide"><span>次にやること</span><input id="draftNext" placeholder="例：上長に相談する/明日確認する" value="${escape(d.nextAction)}"></label></div><div class="modalActions"><button class="primary" data-action="saveQuick">この波を残す</button><button class="ghost" data-action="saveEmotionOnly">感情だけで残す</button><button class="textBtn" data-action="closeQuick">閉じる</button></div></div></div>`}
+    function bindEvents(){
+      document.querySelectorAll('[data-action="openQuick"]').forEach(b=>b.onclick=()=>{state.draft=blankDraft();state.quickOpen=true;render()});
+      document.querySelectorAll('[data-action="closeQuick"]').forEach(b=>b.onclick=()=>{state.quickOpen=false;render()});
+      document.querySelectorAll('[data-action="copyDaily"]').forEach(b=>b.onclick=()=>copyText(dailyText(),'日報のたねをコピーしました'));
+      document.querySelectorAll('[data-action="copyWeekly"]').forEach(b=>b.onclick=()=>copyText(weeklyText(),'週報のたねをコピーしました'));
+      const exp=document.querySelector('[data-action="exportJson"]'); if(exp)exp.onclick=exportJson;
+      const clr=document.querySelector('[data-action="clearAll"]'); if(clr)clr.onclick=()=>{if(confirm('すべてのログを削除しますか？')){state.logs=[];saveLogs();toast('すべて削除しました')}};
+      document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{state.range=b.dataset.range;render()});
+      document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{state.logs=state.logs.filter(l=>l.id!==b.dataset.delete);saveLogs();toast('削除しました')});
+      document.querySelectorAll('[data-emotion]').forEach(b=>b.onclick=()=>{state.draft.emotion=emotions.find(e=>e.id===b.dataset.emotion);render()});
+      document.querySelectorAll('[data-progress]').forEach(b=>b.onclick=()=>{state.draft.progress=progresses.find(p=>p.id===b.dataset.progress);render()});
+      const save=document.querySelector('[data-action="saveQuick"]'); if(save)save.onclick=saveQuick;
+      const saveE=document.querySelector('[data-action="saveEmotionOnly"]'); if(saveE)saveE.onclick=()=>{state.draft.progress=null;saveQuick()};
+      const req=document.querySelector('[data-action="requestNotify"]'); if(req)req.onclick=requestNotify;
+      const test=document.querySelector('[data-action="testNotify"]'); if(test)test.onclick=()=>showBrowserNotification('manual');
+      const toggle=document.querySelector('[data-action="toggleNotify"]'); if(toggle)toggle.onchange=e=>{if(e.target.checked&&Notification.permission!=='granted'){requestNotify();return} state.settings.browserNotification=e.target.checked;saveSettings();render()};
+      const interval=document.querySelector('[data-action="interval"]'); if(interval)interval.onchange=e=>{state.settings.intervalMinutes=Number(e.target.value);saveSettings();setupInterval();toast('通知間隔を更新しました')};
+      const add=document.querySelector('[data-action="addTask"]'); const input=document.getElementById('newTask'); if(input)input.oninput=e=>state.newTask=e.target.value; if(add)add.onclick=()=>{const v=(document.getElementById('newTask')?.value||'').trim(); if(v&&!state.tasks.includes(v)){state.tasks.push(v);state.newTask='';saveTasks();toast('タスク候補を追加しました')}render()};
+      document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>{state.draft=blankDraft();state.draft.task=b.dataset.task;state.quickOpen=true;render()});
+    }
     function saveQuick(){
-      const d = state.draft;
-      if (!d.emotion && !d.progress) { toast('感情か進み具合をひとつ選んでね'); return; }
-      const emotion = d.emotion || { id:'not-specified', emoji:'🌊', label:'波だけ記録', score:0 };
-      const progress = d.progress || null;
-      const log = { id: nowId(), createdAt: new Date().toISOString(), emotion, progress, emotionScore: emotion.score || 0, progressScore: progress?.score ?? 0, task: (d.task || '').trim(), memo: (d.memo || '').trim(), nextAction: (d.nextAction || '').trim(), source: 'quick-check-v6-2' };
-      state.logs = [log, ...state.logs];
-      save(STORAGE_KEY, state.logs);
-      if (log.task && !state.tasks.includes(log.task)) { state.tasks = [log.task, ...state.tasks]; save(TASKS_KEY, state.tasks); }
-      state.quickOpen = false;
-      state.draft = emptyDraft();
-      toast('今の波を残しました');
-      render();
+      const task=document.getElementById('draftTask')?.value||state.draft.task||''; const memo=document.getElementById('draftMemo')?.value||''; const next=document.getElementById('draftNext')?.value||'';
+      if(!state.draft.emotion&&!state.draft.progress){toast('感情か進み具合をひとつ選んでね');return}
+      const emotion=state.draft.emotion||{id:'unknown',emoji:'〜',label:'未選択',score:0}; const progress=state.draft.progress;
+      const log=normalizeLog({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,createdAt:new Date().toISOString(),emotion,progress,task,memo,nextAction:next,emotionScore:emotion.score??0,progressScore:progress?.score??0});
+      if(task&&!state.tasks.includes(task)){state.tasks.push(task);saveTasks()}
+      state.logs=[log,...state.logs]; state.quickOpen=false; state.draft=blankDraft(); saveLogs(); toast('今の波を記録しました');
     }
-
-    function toast(message){ state.toast = message; render(); setTimeout(() => { state.toast = ''; render(); }, 2200); }
-
-    async function initSW(){
-      if (!('serviceWorker' in navigator)) { state.permission = notificationPermission(); return; }
-      try {
-        const registration = await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=${SW_VERSION}`, { scope: BASE_PATH, updateViaCache: 'none' });
-        await registration.update();
-        state.swRegistration = registration;
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data?.type === 'OPEN_QUICK_CHECK') openQuickFromNotification();
-        });
-      } catch (e) {
-        console.warn('NamiLog notification setup failed', e);
-      } finally {
-        state.permission = notificationPermission();
-        render();
-      }
-    }
-
-    async function ensureSW(){
-      if (!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
-      if (!state.swRegistration) {
-        state.swRegistration = await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=${SW_VERSION}`, { scope: BASE_PATH, updateViaCache: 'none' });
-      }
-      await state.swRegistration.update();
-      try { return await navigator.serviceWorker.ready; } catch { return state.swRegistration; }
-    }
-
-    async function requestNotifications(){
-      if (!('Notification' in window)) { state.permission = 'unsupported'; toast('このブラウザは通知に対応していません'); return; }
-      try {
-        const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-        state.permission = permission;
-        if (permission === 'granted') {
-          state.settings.browserNotification = true;
-          save(SETTINGS_KEY, state.settings);
-          setupTimers();
-          await showBrowserNotification('manual');
-          toast('通知をオンにしました');
-        } else if (permission === 'denied') {
-          toast('通知がブロックされています。ブラウザ設定から許可してください');
-        } else {
-          toast('通知はまだ許可されていません');
-        }
-      } catch (e) {
-        console.warn(e);
-        toast('通知の許可に失敗しました');
-      } finally { render(); }
-    }
-
-    function openQuickFromNotification(){ state.draft = emptyDraft(); state.quickOpen = true; render(); try { window.focus(); } catch {} }
-
-    async function showBrowserNotification(reason='manual'){
-      if (!('Notification' in window)) { toast('このブラウザは通知に対応していません'); return; }
-      if (Notification.permission !== 'granted') { state.permission = Notification.permission; toast('先に通知オンを押してね'); render(); return; }
-      const title = '今の波を残しませんか';
-      const body = reason === 'scheduled' ? '感情と進み具合を、3秒だけ残しておこう。' : 'クリックするとQuick Checkが開きます。';
-      const url = new URL(`${BASE_PATH}?quickCheck=1`, location.origin).href;
-      try {
-        const registration = await ensureSW();
-        await registration.showNotification(title, {
-          body,
-          tag: 'namilog-quick-check',
-          renotify: true,
-          requireInteraction: false,
-          data: { url, reason, createdAt: new Date().toISOString() },
-          actions: [
-            { action: 'open', title: '記録する' },
-            { action: 'later', title: 'あとで' },
-          ],
-        });
-        if (reason === 'manual') toast('テスト通知を出しました');
-      } catch (e) {
-        console.warn('showNotification failed; using fallback Notification', e);
-        try {
-          const notification = new Notification(title, { body, tag: 'namilog-quick-check' });
-          notification.onclick = () => openQuickFromNotification();
-          if (reason === 'manual') toast('テスト通知を出しました');
-        } catch (fallbackError) {
-          console.warn(fallbackError);
-          toast('通知を出せませんでした。ページを再読み込みしてもう一度試してね');
-        }
-      }
-    }
-
-    function setupTimers(){
-      if (intervalId) clearInterval(intervalId);
-      if (state.settings.browserNotification) {
-        intervalId = setInterval(() => showBrowserNotification('scheduled'), state.settings.intervalMinutes * 60 * 1000);
-      }
-    }
+    async function copyText(text,msg){try{await navigator.clipboard.writeText(text); toast(msg)}catch{toast('コピーに失敗しました')}}
+    function exportJson(){const blob=new Blob([JSON.stringify(state.logs,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`namilog-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)}
+    function toast(msg){state.toast=msg;render();setTimeout(()=>{state.toast='';render()},2200)}
+    async function registerSW(){if(!('serviceWorker'in navigator))return null; try{const reg=await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=7`,{scope:BASE_PATH}); await reg.update(); state.registration=reg; return reg}catch(e){console.warn(e);return null}}
+    async function requestNotify(){if(!('Notification'in window)){state.permission='unsupported';toast('このブラウザは通知に対応していません');return} const p=await Notification.requestPermission(); state.permission=p; if(p==='granted'){state.settings.browserNotification=true;saveSettings();await showBrowserNotification('manual')} else toast('通知はまだ許可されていません'); render()}
+    async function showBrowserNotification(reason='manual'){if(!('Notification'in window)){toast('通知に対応していません');return} if(Notification.permission!=='granted'){toast('先に通知オンを押してください');return} const reg=state.registration||await registerSW(); const url=new URL(`${BASE_PATH}?quickCheck=1`,location.origin).href; const opts={body:reason==='scheduled'?'そろそろ今の気分と進み具合を残しておこう。':'クリックすると、今の波を残せます。',tag:'namilog-wave-v7',renotify:true,data:{url},actions:[{action:'open',title:'今の波を残す'},{action:'later',title:'あとで'}]}; try{if(reg&&reg.showNotification) await reg.showNotification('NamiLog そっと声かけ',opts); else new Notification('NamiLog そっと声かけ',opts); if(reason==='manual')toast('テスト通知を出しました')}catch(e){try{new Notification('NamiLog そっと声かけ',opts);toast('テスト通知を出しました')}catch{toast('通知を出せませんでした')}}}
+    let intervalId=null; function setupInterval(){if(intervalId)clearInterval(intervalId); if(state.settings.browserNotification&&state.permission==='granted'){intervalId=setInterval(()=>showBrowserNotification('scheduled'),state.settings.intervalMinutes*60*1000)}}
+    if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){state.draft=blankDraft();state.quickOpen=true;render()}})}
+    const params=new URLSearchParams(location.search); if(params.get('quickCheck')==='1'){state.quickOpen=true; history.replaceState({},'',location.pathname)}
+    registerSW().then(()=>setupInterval()); render();
   </script>
 </body>
 </html>
