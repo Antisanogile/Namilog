@@ -1,11 +1,9 @@
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
-  const url = event.notification.data?.url || '/Namilog/?quickCheck=1'
+  if (event.action === 'later') return
 
-  if (event.action === 'later') {
-    return
-  }
+  const url = event.notification.data?.url || '/Namilog/?quickCheck=1'
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
@@ -16,10 +14,7 @@ self.addEventListener('notificationclick', (event) => {
           return
         }
       }
-
-      if (clients.openWindow) {
-        return clients.openWindow(url)
-      }
+      if (clients.openWindow) return clients.openWindow(url)
     }),
   )
 })

@@ -3,11 +3,298 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Namilog</title>
-    <script type="module" crossorigin src="/Namilog/assets/index-BJEpNUOC.js"></script>
-    <link rel="stylesheet" crossorigin href="/Namilog/assets/index-DhasSB84.css">
+    <title>NamiLog</title>
+    <style>
+      :root {
+        --ink: #283247;
+        --muted: #6a768d;
+        --soft: rgba(255,255,255,.66);
+        --line: rgba(255, 204, 195, .58);
+        --coral: #ff8468;
+        --rose: #f57cc8;
+        --lav: #9db4ff;
+        --cream: #fff8f3;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 14%, rgba(255, 123, 94, .24), transparent 18%),
+          radial-gradient(circle at 24% 20%, rgba(255, 203, 190, .34), transparent 19%),
+          radial-gradient(circle at 76% 10%, rgba(255, 184, 214, .42), transparent 26%),
+          radial-gradient(circle at 92% 30%, rgba(186, 195, 255, .34), transparent 22%),
+          linear-gradient(135deg, #fff8f3 0%, #fff3f6 42%, #f7f2ff 100%);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; min-height: 100vh; }
+      button, input, textarea, select { font: inherit; }
+      button { cursor: pointer; }
+      .app { width: min(1240px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0 84px; }
+      .hero {
+        position: relative; overflow: hidden; display: flex; justify-content: space-between; gap: 24px;
+        min-height: 310px; padding: 42px 48px; border-radius: 40px;
+        border: 1px solid rgba(255,255,255,.72);
+        background: linear-gradient(135deg, rgba(255,255,255,.58), rgba(255,246,247,.52));
+        box-shadow: 0 34px 120px rgba(159,96,112,.12); backdrop-filter: blur(22px);
+      }
+      .hero::before, .hero::after { content: ''; position: absolute; border-radius: 999px; filter: blur(18px); pointer-events: none; }
+      .hero::before { width: 220px; height: 220px; right: 14%; top: -50px; background: linear-gradient(135deg, rgba(255,132,100,.25), rgba(239,119,198,.18)); }
+      .hero::after { width: 260px; height: 260px; right: -40px; bottom: -80px; background: linear-gradient(135deg, rgba(255,187,210,.3), rgba(174,184,255,.22)); }
+      .eyebrow { margin: 0 0 10px; color: #ec6b55; font-size: 13px; font-weight: 900; letter-spacing: .22em; text-transform: uppercase; }
+      h1 { margin: 0; max-width: 720px; font-size: clamp(64px, 9vw, 112px); line-height: .9; letter-spacing: -.08em; background: linear-gradient(105deg, #263247 0%, #2d354b 45%, #b85b4e 82%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .lead { max-width: 780px; margin: 22px 0 0; color: #617089; font-size: 18px; line-height: 2; }
+      .heroActions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: flex-end; gap: 12px; }
+      .primaryButton, .ghostButton, .dangerButton, .textButton { border: 0; border-radius: 20px; font-weight: 900; transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+      .primaryButton { padding: 15px 22px; color: white; background: linear-gradient(135deg, var(--coral), var(--rose) 58%, var(--lav)); box-shadow: 0 22px 48px rgba(242,116,162,.32); }
+      .ghostButton { padding: 15px 20px; color: #344258; background: rgba(255,255,255,.7); border: 1px solid rgba(255,198,187,.72); box-shadow: 0 14px 34px rgba(136,85,103,.06); }
+      .dangerButton { padding: 15px 20px; color: #b94a50; background: rgba(255,245,244,.84); border: 1px solid rgba(255,169,164,.72); }
+      .textButton { padding: 8px 4px; color: #4f5a70; background: transparent; text-decoration: underline; text-decoration-color: rgba(236,107,85,.55); text-underline-offset: 4px; }
+      .small { padding: 10px 13px; border-radius: 14px; font-size: 13px; }
+      button:hover { transform: translateY(-1px); }
+      .layout { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(350px,.82fr); gap: 24px; margin-top: 24px; }
+      .panel, .quickPopup, .detailModal { border: 1px solid rgba(255,255,255,.76); background: rgba(255,255,255,.66); box-shadow: 0 28px 90px rgba(128,94,111,.11); backdrop-filter: blur(22px); }
+      .panel { padding: 26px; border-radius: 36px; }
+      .sectionHeader { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 18px; }
+      .sectionHeader h2 { margin: 0; font-size: 28px; letter-spacing: -.04em; color: var(--ink); }
+      .countBadge, .bigEmoji, .settingsBox { background: rgba(255,247,246,.75); }
+      .countBadge { padding: 9px 13px; border-radius: 999px; color: #7b6f77; font-weight: 900; }
+      .emptyState { display: grid; place-items: center; min-height: 350px; text-align: center; color: var(--muted); border: 1px dashed rgba(255,189,178,.55); border-radius: 28px; background: rgba(255,255,255,.45); }
+      .emptyState h3 { margin: 0; color: var(--ink); }
+      .emptyIcon { margin: 0; font-size: 52px; }
+      .logList { display: grid; gap: 14px; }
+      .logCard { padding: 18px; border: 1px solid var(--line); border-radius: 26px; background: rgba(255,255,255,.72); box-shadow: 0 16px 42px rgba(149,99,113,.06); }
+      .logTop { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 10px; }
+      .time { color: #8b8290; font-weight: 900; }
+      .deleteButton { border: 0; color: #b55b66; background: transparent; font-weight: 900; }
+      .logMain { display: flex; gap: 14px; align-items: flex-start; }
+      .bigEmoji { display: grid; place-items: center; flex: 0 0 58px; width: 58px; height: 58px; border-radius: 20px; font-size: 30px; }
+      .logMain h3 { margin: 2px 0 8px; font-size: 20px; color: var(--ink); }
+      .logMain p { margin: 5px 0; color: var(--muted); line-height: 1.7; }
+      .progressText { color: #7a8498; font-size: 15px; }
+      .dailyTextarea { width: 100%; min-height: 350px; resize: vertical; padding: 16px; color: #344158; border: 1px solid var(--line); border-radius: 24px; background: rgba(255,255,255,.72); line-height: 1.75; }
+      .sideActions, .notificationActions, .popupFooterActions, .modalActions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .sideActions { margin-top: 14px; }
+      .settingsBox { margin-top: 18px; padding: 18px; border-radius: 24px; }
+      .settingsBox h3 { margin: 0; color: var(--ink); }
+      .notificationBox { border: 1px solid rgba(255,164,140,.34); background: radial-gradient(circle at 12% 12%, rgba(255,128,102,.13), transparent 34%), linear-gradient(180deg, rgba(255,250,247,.92), rgba(255,245,250,.82)); }
+      .notificationHeader { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+      .statusPill { flex: 0 0 auto; padding: 7px 10px; border-radius: 999px; color: #64748b; background: white; border: 1px solid rgba(183,195,214,.76); font-size: 12px; font-weight: 900; }
+      .statusPill.granted { color: #3d7a55; background: #f1fbef; border-color: rgba(121,184,118,.48); }
+      .statusPill.denied { color: #b04444; background: #fff1f1; border-color: rgba(255,160,160,.7); }
+      .statusPill.default { color: #a7672f; background: #fff5dd; border-color: rgba(255,185,91,.6); }
+      .statusPill.unsupported { color: #8a6472; background: #fff4f8; border-color: rgba(235,160,190,.55); }
+      .hint { margin: 12px 0 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+      .settingRow { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-top: 12px; color: #4c5b73; font-weight: 800; }
+      .settingRow select { padding: 9px 12px; border: 1px solid rgba(183,195,214,.9); border-radius: 14px; background: white; }
+      .quickPopup { position: fixed; right: 24px; bottom: 24px; z-index: 50; width: min(620px, calc(100vw - 32px)); padding: 24px; border-radius: 32px; background: radial-gradient(circle at 16% 6%, rgba(255,132,100,.16), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.88), rgba(255,246,249,.86)); box-shadow: 0 30px 90px rgba(123,78,101,.22); animation: popupIn .28s ease both; }
+      @keyframes popupIn { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      .popupClose, .modalClose { position: absolute; display: grid; place-items: center; width: 42px; height: 42px; color: #64748b; border: 0; border-radius: 999px; background: rgba(255,249,250,.92); box-shadow: 0 10px 24px rgba(45,51,88,.08); font-size: 25px; }
+      .popupClose { top: 16px; right: 16px; }
+      .quickPopup h2 { margin: 0; padding-right: 46px; font-size: 30px; letter-spacing: -.05em; }
+      .popupLead, .modalLead { margin: 9px 0 18px; color: var(--muted); line-height: 1.8; }
+      .popupSectionTitle { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 18px 2px 10px; }
+      .popupSectionTitle h3 { margin: 0; color: var(--ink); font-size: 16px; }
+      .popupSectionTitle span { color: #9a8793; font-size: 13px; font-weight: 900; }
+      .miniChoiceGrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; }
+      .miniChoice, .choiceCard { display: grid; gap: 8px; place-items: center; color: #2f3c53; border: 1px solid var(--line); background: rgba(255,255,255,.72); box-shadow: 0 14px 34px rgba(45,51,88,.05); }
+      .miniChoice { min-height: 92px; padding: 10px 6px; border-radius: 24px; }
+      .miniChoice span { font-size: 27px; filter: drop-shadow(0 8px 14px rgba(229,117,99,.18)); }
+      .miniChoice strong { font-size: 12px; }
+      .miniChoice.selected, .choiceCard.selected { border-color: rgba(255,125,96,.72); background: radial-gradient(circle at 50% 18%, rgba(255,202,187,.45), transparent 38%), rgba(255,252,250,.95); box-shadow: 0 22px 52px rgba(255,132,95,.2); }
+      .popupFooter { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 18px; }
+      .modalBackdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 24px; background: rgba(255,247,248,.62); backdrop-filter: blur(12px); }
+      .detailModal { position: relative; width: min(830px, 100%); max-height: min(92vh, 920px); overflow: auto; padding: 32px; border-radius: 38px; }
+      .modalClose { top: 22px; right: 22px; }
+      .detailModal h2 { margin: 0; padding-right: 54px; font-size: clamp(30px, 5vw, 44px); letter-spacing: -.06em; }
+      .choiceSection { margin-top: 24px; }
+      .choiceTitle { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
+      .choiceTitle h3 { margin: 0; font-size: 22px; }
+      .choiceTitle span { color: #9a8793; font-weight: 800; }
+      .choiceGrid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 14px; }
+      .choiceCard { min-height: 132px; padding: 18px 10px; border-radius: 26px; }
+      .choiceCard span { font-size: 34px; }
+      .choiceCard strong { font-size: 16px; }
+      .inputGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 26px; }
+      .inputGrid label { display: grid; gap: 8px; color: #40506a; font-weight: 900; }
+      .inputGrid label.wide { grid-column: 1 / -1; }
+      .inputGrid input { width: 100%; padding: 14px 16px; color: var(--ink); border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.76); outline: none; }
+      .inputGrid input:focus { border-color: rgba(255,132,95,.7); box-shadow: 0 0 0 4px rgba(255,132,95,.12); }
+      .toast { position: fixed; left: 50%; bottom: 28px; z-index: 90; padding: 12px 18px; color: white; border-radius: 999px; background: linear-gradient(135deg, rgba(38,50,71,.94), rgba(95,75,94,.94)); box-shadow: 0 18px 40px rgba(37,48,68,.25); transform: translateX(-50%); animation: toastIn .2s ease both; }
+      @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+      @media (max-width: 920px) { .hero { display: grid; } .heroActions { justify-content: flex-start; } .layout { grid-template-columns: 1fr; } .choiceGrid { grid-template-columns: repeat(2, minmax(0,1fr)); } .inputGrid { grid-template-columns: 1fr; } }
+      @media (max-width: 640px) { .app { width: min(100% - 20px, 1240px); padding-top: 12px; } .hero, .panel, .detailModal { padding: 20px; border-radius: 26px; } h1 { font-size: clamp(48px,18vw,76px); } .quickPopup { right: 10px; bottom: 10px; width: calc(100vw - 20px); } .miniChoiceGrid { grid-template-columns: repeat(3, 1fr); } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="app" class="app"></div>
+    <script>
+      const STORAGE_KEY = 'namilog.quick-check.logs.v1';
+      const SETTINGS_KEY = 'namilog.quick-check.settings.v1';
+      const emotions = [
+        { id: 'fun', emoji: '😄', label: '楽しい' },
+        { id: 'good', emoji: '🙂', label: 'いい感じ' },
+        { id: 'calm', emoji: '😌', label: '穏やか' },
+        { id: 'tired', emoji: '🥺', label: '少ししんどい' },
+        { id: 'cloudy', emoji: '☁️', label: 'モヤモヤ' },
+      ];
+      const progresses = [
+        { id: 'smooth', emoji: '🚀', label: '順調' },
+        { id: 'okay', emoji: '👌', label: 'まあまあ' },
+        { id: 'little', emoji: '🌱', label: '少しずつ' },
+        { id: 'busy', emoji: '🏃', label: 'バタついてる' },
+        { id: 'stuck', emoji: '❌', label: '進んでない' },
+      ];
+      const defaultSettings = { intervalMinutes: 120, autoPopup: false, browserNotification: false };
+      let logs = load(STORAGE_KEY, []);
+      let settings = { ...defaultSettings, ...load(SETTINGS_KEY, {}) };
+      let draft = emptyDraft();
+      let quickOpen = true;
+      let detailOpen = false;
+      let toastTimer = null;
+      let swRegistration = null;
+      let notificationPermission = getPermission();
+      let timers = [];
+      const app = document.getElementById('app');
+
+      init();
+
+      function init() {
+        registerServiceWorker();
+        const params = new URLSearchParams(location.search);
+        if (params.get('quickCheck') === '1') {
+          quickOpen = true;
+          params.delete('quickCheck');
+          history.replaceState({}, '', location.pathname + (params.toString() ? '?' + params.toString() : ''));
+        }
+        render();
+        startTimers();
+      }
+
+      function load(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+      }
+      function persist() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      }
+      function emptyDraft() { return { emotion: null, progress: null, memo: '', task: '', nextAction: '' }; }
+      function getPermission() { return 'Notification' in window ? Notification.permission : 'unsupported'; }
+      function formatTime(value) { return new Date(value).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }); }
+      function formatDate(value) { return new Date(value).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' }); }
+      function escapeHtml(value = '') { return String(value).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }
+      function todayLogs() {
+        const today = new Date().toLocaleDateString('ja-JP');
+        return logs.filter(log => new Date(log.createdAt).toLocaleDateString('ja-JP') === today);
+      }
+      function dailyText() {
+        const items = todayLogs();
+        if (!items.length) return '今日はまだ波の記録がありません。';
+        const lines = items.slice().reverse().map(log => {
+          return `- ${formatTime(log.createdAt)} ${log.emotion?.emoji ?? ''} ${log.emotion?.label ?? ''}${log.progress ? ` / ${log.progress.emoji} ${log.progress.label}` : ''}${log.task ? `\n  - やっていたこと：${log.task}` : ''}${log.memo ? `\n  - メモ：${log.memo}` : ''}${log.nextAction ? `\n  - 次：${log.nextAction}` : ''}`;
+        });
+        return [`# NamiLog 日報 ${formatDate(new Date().toISOString())}`, '', '## 今日の波の記録', ...lines, '', '## 今日の振り返り', '- 今日の気分の波：', '- 進めたこと：', '- 引っかかったこと：', '- 明日の自分に渡す一手：'].join('\n');
+      }
+      function toast(message) {
+        clearTimeout(toastTimer);
+        const old = document.querySelector('.toast');
+        if (old) old.remove();
+        const el = document.createElement('div');
+        el.className = 'toast';
+        el.textContent = message;
+        document.body.appendChild(el);
+        toastTimer = setTimeout(() => el.remove(), 2300);
+      }
+      function saveLog() {
+        if (!draft.emotion) return toast('まず感情を選んでね');
+        logs.unshift({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, createdAt: new Date().toISOString(), emotion: draft.emotion, progress: draft.progress, memo: (draft.memo || '').trim(), task: (draft.task || '').trim(), nextAction: (draft.nextAction || '').trim() });
+        draft = emptyDraft(); quickOpen = false; detailOpen = false; persist(); render(); toast('今の波を記録しました');
+      }
+      function deleteLog(id) { logs = logs.filter(log => log.id !== id); persist(); render(); toast('ログを削除しました'); }
+      function clearAll() { if (!confirm('すべてのログを削除しますか？')) return; logs = []; persist(); render(); toast('すべて削除しました'); }
+      async function copyDaily() { try { await navigator.clipboard.writeText(dailyText()); toast('日報のたねをコピーしました'); } catch { toast('コピーに失敗しました'); } }
+      function exportJson() { const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `namilog-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
+
+      function choiceButtons(items, selected, type, mini = true) {
+        return items.map(item => `<button class="${mini ? 'miniChoice' : 'choiceCard'} ${selected?.id === item.id ? 'selected' : ''}" data-action="select" data-type="${type}" data-id="${item.id}"><span>${item.emoji}</span><strong>${item.label}</strong></button>`).join('');
+      }
+
+      function render() {
+        const items = todayLogs();
+        const permissionLabel = notificationPermission === 'granted' ? '許可済み' : notificationPermission === 'denied' ? 'ブロック中' : notificationPermission === 'unsupported' ? '非対応' : '未許可';
+        app.innerHTML = `
+          <header class="hero">
+            <div><p class="eyebrow">NamiLog</p><h1>NamiLog</h1><p class="lead">感情の波と仕事の進み方を、やさしく見える化するログアプリです。小さな記録から、日報のヒントまで自然につなげます。</p></div>
+            <div class="heroActions"><button class="primaryButton" data-action="openQuick">今の波を残す</button><button class="ghostButton" data-action="copyDaily">日報をコピー</button></div>
+          </header>
+          <main class="layout">
+            <section class="panel"><div class="sectionHeader"><div><p class="eyebrow">Today</p><h2>今日の波</h2></div><span class="countBadge">${items.length}件</span></div>${items.length ? `<div class="logList">${items.map(log => `<article class="logCard"><div class="logTop"><span class="time">${formatTime(log.createdAt)}</span><button class="deleteButton" data-action="deleteLog" data-id="${log.id}">削除</button></div><div class="logMain"><span class="bigEmoji">${log.emotion?.emoji ?? ''}</span><div><h3>${escapeHtml(log.emotion?.label ?? '')}${log.progress ? `<span class="progressText"> / ${log.progress.emoji} ${escapeHtml(log.progress.label)}</span>` : ''}</h3>${log.task ? `<p>やっていたこと：${escapeHtml(log.task)}</p>` : ''}${log.memo ? `<p>メモ：${escapeHtml(log.memo)}</p>` : ''}${log.nextAction ? `<p>次：${escapeHtml(log.nextAction)}</p>` : ''}</div></div></article>`).join('')}</div>` : `<div class="emptyState"><p class="emptyIcon">🌤️</p><h3>まだ今日の波はありません</h3><p>右下のQuick Checkから、今の気持ちをひとつ残してみましょう。</p></div>`}</section>
+            <aside class="panel"><div class="sectionHeader"><div><p class="eyebrow">Daily Reflection</p><h2>日報のたね</h2></div></div><textarea class="dailyTextarea" readonly>${escapeHtml(dailyText())}</textarea><div class="sideActions"><button class="primaryButton" data-action="copyDaily">コピー</button><button class="ghostButton" data-action="exportJson">JSON出力</button><button class="dangerButton" data-action="clearAll">全削除</button></div>
+              <div class="settingsBox notificationBox"><div class="notificationHeader"><div><h3>リマインド通知</h3><p class="hint">他の作業中でも、Windows右下からそっと声をかけます。</p></div><span class="statusPill ${notificationPermission}">${permissionLabel}</span></div><div class="notificationActions"><button class="primaryButton small" data-action="requestNotification">やさしく知らせてもらう</button><button class="ghostButton small" data-action="testNotification">今ためす</button></div><label class="settingRow"><span>定期的に声をかけてもらう</span><input type="checkbox" data-action="toggleBrowserNotification" ${settings.browserNotification ? 'checked' : ''}></label><label class="settingRow"><span>間隔</span><select data-action="changeInterval"><option value="30" ${settings.intervalMinutes==30?'selected':''}>30分</option><option value="60" ${settings.intervalMinutes==60?'selected':''}>1時間</option><option value="120" ${settings.intervalMinutes==120?'selected':''}>2時間</option><option value="180" ${settings.intervalMinutes==180?'selected':''}>3時間</option></select></label><p class="hint">まずは「今ためす」で確認。定期通知は、NamiLogを開いている間に動きます。通知をクリックすると、感情と進み具合をすぐ残せます。</p></div>
+              <div class="settingsBox"><h3>画面内のQuick Check</h3><label class="settingRow"><span>画面内でもそっと表示する</span><input type="checkbox" data-action="toggleAutoPopup" ${settings.autoPopup ? 'checked' : ''}></label><p class="hint">これはNamiLog画面の右下に出る小さな声かけです。リマインド通知とは別物です。</p></div>
+            </aside>
+          </main>
+          ${quickOpen ? quickPopupHtml() : ''}${detailOpen ? detailModalHtml() : ''}`;
+      }
+
+      function quickPopupHtml() { return `<div class="quickPopup"><button class="popupClose" data-action="closeQuick">×</button><p class="eyebrow">Quick Check</p><h2>今の波を残そう</h2><p class="popupLead">感情と進み具合を一緒に残すと、あとで日報が書きやすくなります。</p><div class="popupSectionTitle"><h3>感情</h3><span>必須</span></div><div class="miniChoiceGrid">${choiceButtons(emotions, draft.emotion, 'emotion')}</div><div class="popupSectionTitle"><h3>進み具合</h3><span>できれば1つ</span></div><div class="miniChoiceGrid">${choiceButtons(progresses, draft.progress, 'progress')}</div><div class="popupFooter"><button class="textButton" data-action="openDetail">もっとくわしく</button><div class="popupFooterActions"><button class="ghostButton small" data-action="resetDraft">リセット</button><button class="primaryButton small" data-action="saveLog">今を記録する</button></div></div></div>`; }
+      function detailModalHtml() { return `<div class="modalBackdrop"><div class="detailModal"><button class="modalClose" data-action="closeDetail">×</button><p class="eyebrow">Quick Check</p><h2>今のあなたのことを教えてね</h2><p class="modalLead">感情の波と仕事の進み方を、あとで読み返せる形にします。</p><section class="choiceSection"><div class="choiceTitle"><h3>感情</h3><span>1つ選択</span></div><div class="choiceGrid">${choiceButtons(emotions, draft.emotion, 'emotion', false)}</div></section><section class="choiceSection"><div class="choiceTitle"><h3>進み具合</h3><span>できれば1つ</span></div><div class="choiceGrid">${choiceButtons(progresses, draft.progress, 'progress', false)}</div></section><div class="inputGrid"><label><span>今やっていたこと</span><input data-field="task" value="${escapeHtml(draft.task)}" placeholder="例：日報アプリの公開設定"></label><label><span>ひとことメモ</span><input data-field="memo" value="${escapeHtml(draft.memo)}" placeholder="例：通知で記録できるとかなり楽そう"></label><label class="wide"><span>次にやること</span><input data-field="nextAction" value="${escapeHtml(draft.nextAction)}" placeholder="例：通知テストを確認する"></label></div><div class="modalActions"><button class="primaryButton" data-action="saveLog">今を記録する</button><button class="ghostButton" data-action="closeDetail">キャンセル</button></div></div></div>`; }
+
+      document.addEventListener('click', async (e) => {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        const action = el.dataset.action;
+        if (action === 'select') { const list = el.dataset.type === 'emotion' ? emotions : progresses; draft[el.dataset.type] = list.find(x => x.id === el.dataset.id); render(); }
+        if (action === 'openQuick') { draft = emptyDraft(); quickOpen = true; detailOpen = false; render(); }
+        if (action === 'closeQuick') { quickOpen = false; render(); }
+        if (action === 'resetDraft') { draft = emptyDraft(); render(); }
+        if (action === 'saveLog') saveLog();
+        if (action === 'openDetail') { quickOpen = false; detailOpen = true; render(); }
+        if (action === 'closeDetail') { detailOpen = false; draft = emptyDraft(); render(); }
+        if (action === 'deleteLog') deleteLog(el.dataset.id);
+        if (action === 'copyDaily') copyDaily();
+        if (action === 'exportJson') exportJson();
+        if (action === 'clearAll') clearAll();
+        if (action === 'requestNotification') requestNotifications();
+        if (action === 'testNotification') showBrowserNotification('manual');
+      });
+      document.addEventListener('change', (e) => {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        if (el.dataset.action === 'toggleBrowserNotification') { if (el.checked && Notification.permission !== 'granted') requestNotifications(); else { settings.browserNotification = el.checked; persist(); startTimers(); render(); } }
+        if (el.dataset.action === 'toggleAutoPopup') { settings.autoPopup = el.checked; persist(); startTimers(); render(); }
+        if (el.dataset.action === 'changeInterval') { settings.intervalMinutes = Number(el.value); persist(); startTimers(); render(); }
+      });
+      document.addEventListener('input', (e) => { const field = e.target.dataset.field; if (field) draft[field] = e.target.value; });
+
+      async function registerServiceWorker() {
+        if (!('serviceWorker' in navigator)) return;
+        try {
+          swRegistration = await navigator.serviceWorker.register('./namilog-sw.js');
+          navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data?.type === 'OPEN_QUICK_CHECK') { draft = emptyDraft(); quickOpen = true; detailOpen = false; render(); window.focus?.(); }
+          });
+        } catch { toast('声かけ通知の準備に失敗しました'); }
+      }
+      async function requestNotifications() {
+        if (!('Notification' in window)) { notificationPermission = 'unsupported'; render(); return toast('このブラウザは通知に対応していません'); }
+        const permission = await Notification.requestPermission();
+        notificationPermission = permission;
+        if (permission === 'granted') { settings.browserNotification = true; persist(); startTimers(); render(); toast('声かけ通知を許可しました'); showBrowserNotification('manual'); }
+        else if (permission === 'denied') { render(); toast('通知がブロックされています。ブラウザ設定から許可してください'); }
+        else { render(); toast('通知はまだ許可されていません'); }
+      }
+      async function showBrowserNotification(reason = 'manual') {
+        if (!('Notification' in window)) return toast('このブラウザは通知に対応していません');
+        if (Notification.permission !== 'granted') { notificationPermission = Notification.permission; render(); return toast('先に声かけ通知を許可してください'); }
+        if (!swRegistration) await registerServiceWorker();
+        if (!swRegistration) return toast('声かけ通知の準備に失敗しました');
+        const url = new URL(location.pathname.replace(/index\.html$/, '') + '?quickCheck=1', location.origin).href;
+        await swRegistration.showNotification('NamiLogから小さな声かけ', { body: reason === 'scheduled' ? '今の気持ちと進み具合を、3秒だけ残しておこう。' : 'クリックすると、感情と進み具合をやさしく記録できます。', tag: 'namilog-quick-check', renotify: true, requireInteraction: false, data: { url, reason, createdAt: new Date().toISOString() }, actions: [{ action: 'open', title: '今を残す' }, { action: 'later', title: 'あとで' }] });
+        if (reason === 'manual') toast('小さな声かけを送りました');
+      }
+      function startTimers() {
+        timers.forEach(clearInterval); timers = [];
+        if (settings.autoPopup) timers.push(setInterval(() => { draft = emptyDraft(); quickOpen = true; detailOpen = false; render(); }, settings.intervalMinutes * 60 * 1000));
+        if (settings.browserNotification && notificationPermission === 'granted') timers.push(setInterval(() => showBrowserNotification('scheduled'), settings.intervalMinutes * 60 * 1000));
+      }
+    </script>
   </body>
 </html>
