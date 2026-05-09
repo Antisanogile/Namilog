@@ -1,5 +1,5 @@
 
-const VERSION='v22-pilot-readiness';
+const VERSION='v24-privacy-onboarding';
 const LOG_KEY='namilog.quick-check.logs.v1';
 const SETTINGS_KEY='namilog.quick-check.settings.v1';
 const PROFILE_KEY='namilog.profile.v1';
@@ -109,9 +109,9 @@ function act(a){if(a==='openQuick'){resetDraft();state.quick=true;render()} if(a
 function saveLog(){const e=state.draft.emotion,p=state.draft.progress;if(!e&&!p&&!state.draft.memo.trim()){toast('感情か進捗をひとつ選んでね');return}const newLog={id:Date.now()+'-'+Math.random().toString(36).slice(2),createdAt:new Date().toISOString(),emotion:e,progress:p,emotionScore:e?.score??0,progressScore:p?.score??0,task:state.draft.task,memo:state.draft.memo.trim(),nextAction:state.draft.nextAction.trim(),profile:{...state.profile},version:VERSION,syncStatus:'local'};state.logs.unshift(newLog);resetDraft();state.quick=false;state.modal=null;toast('波を記録しました');render();if(state.auth.syncOnSave)syncLogToDb(newLog,true)}
 function copy(t,msg){navigator.clipboard?.writeText(t).then(()=>toast(msg)).catch(()=>toast('コピーに失敗しました'))}
 function toast(m){state.toast=m;render();setTimeout(()=>{state.toast='';render()},1800)}
-async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=22');navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
+async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=24');navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
 async function requestNotif(){if(!('Notification'in window)){toast('通知非対応です');return}const p=await Notification.requestPermission();state.permission=p;if(p==='granted'){state.settings.browserNotification=true;await showNotif('manual');toast('通知を許可しました')}else toast('通知は未許可です');render()}
-async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波を残そう',{body:reason==='scheduled'?'感情・進み具合・いまの予定を、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v22',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波を残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
+async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波をそっと残そう',{body:reason==='scheduled'?'感情・進み具合・いまの予定を、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v24',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波をそっと残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
 function startTimers(){setInterval(()=>{if(state.settings.browserNotification)showNotif('scheduled');if(state.settings.autoPopup){resetDraft();state.quick=true;render()}},60000);}
 
 
