@@ -3,432 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NamiLog</title>
+  <title>NamiLog v17</title>
   <style>
     :root{
-      --ink:#243047; --muted:#74829a; --soft:#fff7f3; --card:rgba(255,255,255,.76);
-      --line:rgba(255,137,112,.25); --coral:#ff7d69; --pink:#ed67a8; --lav:#9ca4ff; --cream:#fffaf5;
+      --bg:#fff7f1;--bg2:#f7edff;--card:#fffdf9;--ink:#44302f;--muted:#8b7270;
+      --coral:#ef7b6c;--rose:#f7a8a0;--peach:#ffd8c5;--lav:#c9b9ff;--lav2:#ece6ff;
+      --mint:#d8f1df;--sun:#ffe9a8;--line:#f1d9cf;--shadow:0 20px 60px rgba(125,75,65,.12);
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color:var(--ink); background:#fff8f4;
+      color:var(--ink); background: radial-gradient(circle at 12% 8%, #ffe0cd 0 22%, transparent 38%), radial-gradient(circle at 88% 14%, #ece4ff 0 24%, transparent 42%), linear-gradient(140deg,var(--bg),var(--bg2));
     }
-    *{box-sizing:border-box} body{margin:0; min-width:320px; min-height:100vh; background:
-      radial-gradient(circle at 15% 6%, rgba(255,126,94,.25), transparent 26%),
-      radial-gradient(circle at 76% 3%, rgba(238,103,168,.20), transparent 28%),
-      radial-gradient(circle at 96% 46%, rgba(151,163,255,.22), transparent 25%),
-      linear-gradient(135deg,#fffaf6 0%,#fff1ef 42%,#f7f1ff 100%);}
-    button,input,textarea,select{font:inherit} button{cursor:pointer}
-    .app{width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:24px 0 80px}
-    .hero{position:relative; overflow:hidden; min-height:270px; padding:44px; border:1px solid rgba(255,255,255,.78); border-radius:34px; background:rgba(255,255,255,.58); box-shadow:0 26px 100px rgba(149,92,110,.12); backdrop-filter:blur(22px)}
-    .hero:after{content:""; position:absolute; inset:auto -8% -55% 55%; height:260px; background:radial-gradient(circle,rgba(237,103,168,.24),transparent 64%); pointer-events:none}
-    .eyebrow{margin:0 0 10px; color:#e66553; font-size:13px; font-weight:900; letter-spacing:.28em; text-transform:uppercase}
-    h1{margin:0; font-size:clamp(58px,9vw,104px); line-height:.9; letter-spacing:-.075em; color:#263149}
-    .lead{max-width:760px; margin:22px 0 0; color:#62718b; font-size:18px; line-height:1.9}
-    .heroActions{position:absolute; top:40px; right:40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-end}
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px; background:rgba(255,255,255,.72); border:1px solid rgba(255,139,112,.25); box-shadow:0 12px 30px rgba(149,92,110,.08); color:#df604f; font-weight:900; letter-spacing:.14em}
-    .primary,.ghost,.danger,.textBtn{border:0; border-radius:20px; font-weight:900; transition:transform .16s ease, box-shadow .16s ease, opacity .16s ease}
-    .primary{padding:15px 22px; color:white; background:linear-gradient(135deg,var(--coral),var(--pink) 58%,var(--lav)); box-shadow:0 18px 40px rgba(237,103,168,.30)}
-    .ghost{padding:15px 20px; color:#40506b; background:rgba(255,255,255,.76); border:1px solid rgba(255,139,112,.25)}
-    .danger{padding:12px 16px; color:#c54f58; background:#fff2f0; border:1px solid rgba(255,139,112,.35)}
-    .textBtn{padding:8px 4px; color:#c35364; background:transparent; text-decoration:underline; text-underline-offset:4px}
-    .small{padding:10px 13px; border-radius:14px; font-size:13px}.primary:hover,.ghost:hover,.danger:hover,.textBtn:hover{transform:translateY(-1px)}
-    .layout{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(360px,.85fr); gap:22px; margin-top:22px}.span{grid-column:1/-1}
-    .panel{padding:26px; border:1px solid rgba(255,255,255,.75); border-radius:30px; background:var(--card); box-shadow:0 24px 90px rgba(149,92,110,.09); backdrop-filter:blur(20px)}
-    .sectionHead{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px}.sectionHead h2{margin:0; font-size:28px; letter-spacing:-.05em}.badge{padding:8px 12px; border-radius:999px; color:#c75d50; background:#fff0e9; border:1px solid rgba(255,139,112,.24); font-weight:900}
-    .tabs{display:flex; gap:9px; margin:8px 0 18px}.tab{width:42px; height:42px; border-radius:999px; border:1px solid rgba(255,139,112,.25); color:#6e7890; background:#fff; font-weight:900}.tab.active{color:white; background:linear-gradient(135deg,#ff7d69,#ed67a8); border-color:transparent}
-    .waveCard{padding:20px; border:1px solid var(--line); border-radius:24px; background:linear-gradient(180deg,rgba(255,255,255,.84),rgba(255,250,249,.72))}.waveTop{display:flex; align-items:center; justify-content:space-between; gap:12px}.weather{padding:8px 12px; border-radius:999px; color:#bf6755; background:#fff8f2; border:1px solid rgba(255,139,112,.24); font-weight:900}
-    svg{display:block; width:100%; height:210px; margin-top:12px}.axis{font-size:11px; fill:#9ca7b8}.grid{stroke:#f4d9d1; stroke-width:1}.mid{stroke:#e9ddea; stroke-dasharray:5 7}.area{fill:url(#warmArea)}.line{fill:none; stroke:url(#warmLine); stroke-width:5; stroke-linecap:round; stroke-linejoin:round}.dot{fill:#fff; stroke:#ed67a8; stroke-width:4}
-    .insightGrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px}.insight{min-height:120px; padding:18px; border-radius:22px; background:rgba(255,255,255,.52)}.insight h3{margin:0 0 10px; color:#c8524b; font-size:15px}.insight p{margin:0; color:#61708a; line-height:1.75}
-    .logList{display:grid; gap:12px}.logCard{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; padding:16px; border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.72)}.emojiBox{width:58px; height:58px; display:grid; place-items:center; border-radius:18px; background:linear-gradient(135deg,#fff2ed,#fff)}.emojiBox span{font-size:30px}.logCard h3{margin:0 0 5px; font-size:18px}.logCard p{margin:3px 0; color:#65738a; line-height:1.6}.time{color:#90869a; font-weight:900; font-size:13px}.empty{display:grid; place-items:center; min-height:240px; text-align:center; color:#74829a; border:1px dashed rgba(255,139,112,.35); border-radius:24px}
-    .dailyTextarea{width:100%; min-height:320px; resize:vertical; padding:17px; border:1px solid var(--line); border-radius:20px; background:rgba(255,255,255,.70); color:#39465f; line-height:1.75}.sideActions{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
-    .settingsBox{margin-top:18px; padding:18px; border:1px solid var(--line); border-radius:22px; background:linear-gradient(180deg,rgba(255,250,247,.85),rgba(255,255,255,.56))}.settingsBox h3{margin:0 0 8px}.hint{margin:8px 0 0; color:#7c899e; font-size:13px; line-height:1.65}.settingRow{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:13px; color:#46556d; font-weight:800}.settingRow select,.settingsBox input{padding:10px 12px; border:1px solid rgba(255,139,112,.35); border-radius:14px; background:#fff}.taskInput{display:flex; gap:8px; margin-top:12px}.taskInput input{min-width:0; flex:1}.chipRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}.chip{border:1px solid rgba(255,139,112,.3); border-radius:999px; padding:8px 12px; background:#fffaf8; color:#536278; font-weight:800}.statusPill{flex:0 0 auto; padding:7px 10px; border-radius:999px; color:#9a6a2b; background:#fff8e8; border:1px solid rgba(244,190,88,.55); font-size:12px; font-weight:900}.statusPill.granted{color:#2f7a4f;background:#effaf3;border-color:rgba(96,180,123,.45)}.statusPill.denied{color:#b04444;background:#fff1f1;border-color:rgba(255,160,160,.7)}
-    .modalBackdrop{position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:24px; background:rgba(255,245,244,.68); backdrop-filter:blur(12px)}.quick{position:relative; width:min(760px,100%); max-height:92vh; overflow:auto; padding:32px; border:1px solid rgba(255,255,255,.82); border-radius:36px; background:rgba(255,255,255,.92); box-shadow:0 34px 120px rgba(147,82,105,.22)}.close{position:absolute; top:20px; right:20px; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:999px; background:#fff8f7; color:#7d879a; font-size:24px; box-shadow:0 10px 24px rgba(149,92,110,.08)}.quick h2{margin:0; padding-right:54px; font-size:clamp(30px,5vw,48px); letter-spacing:-.06em}.quickLead{margin:10px 0 22px; color:#74829a; font-size:17px}.choiceTitle{display:flex; justify-content:space-between; align-items:center; margin:20px 0 12px}.choiceTitle h3{margin:0}.choiceGrid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px}.choice{display:grid; place-items:center; gap:10px; min-height:118px; padding:14px 8px; border:1px solid rgba(236,205,199,.75); border-radius:24px; background:#fff; color:#29354b; box-shadow:0 18px 44px rgba(149,92,110,.06)}.choice span{font-size:34px}.choice strong{font-size:14px}.choice.selected{border-color:rgba(255,125,105,.65); background:linear-gradient(180deg,#fff6f2,#fff); box-shadow:0 18px 44px rgba(237,103,168,.14)}.quickFields{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px}.quickFields label{display:grid; gap:8px; color:#46556d; font-weight:900}.quickFields input,.quickFields textarea,.quickFields select{width:100%; padding:13px 15px; border:1px solid rgba(255,139,112,.35); border-radius:17px; background:#fff; color:#263149}.quickFields .wide{grid-column:1/-1}.modalActions{display:flex; flex-wrap:wrap; gap:12px; margin-top:22px}
-    .toast{position:fixed; z-index:99; left:50%; bottom:26px; transform:translateX(-50%); padding:12px 18px; border-radius:999px; color:#fff; background:rgba(36,48,71,.92); box-shadow:0 18px 44px rgba(36,48,71,.25); font-weight:800}.version{position:fixed; right:12px; bottom:8px; color:#b98a96; font-size:11px; font-weight:800}
-    .profilePill{margin-left:8px; color:#7f5d70; background:rgba(255,255,255,.62)}
-    .profileBox{border-color:rgba(156,164,255,.28); background:linear-gradient(180deg,rgba(255,250,253,.88),rgba(255,255,255,.58))}
-
-    .googleOpsBox{border-color:rgba(156,164,255,.36); background:linear-gradient(180deg,rgba(247,246,255,.92),rgba(255,255,255,.62))}
-    .opsChecklist{display:grid; gap:10px; margin-top:12px}
-    .opsItem{display:grid; grid-template-columns:auto 1fr; gap:10px; padding:11px 12px; border:1px solid rgba(156,164,255,.24); border-radius:16px; background:rgba(255,255,255,.58); color:#4f5f78; line-height:1.55}
-    .opsItem b{color:#45506e}
-
-    .goalBox{border-color:rgba(255,125,105,.34); background:linear-gradient(180deg,rgba(255,247,244,.92),rgba(255,255,255,.62))}
-    .goalSteps{display:grid; gap:9px; margin-top:12px}
-    .goalStep{display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; padding:11px 12px; border:1px solid rgba(255,139,112,.22); border-radius:16px; background:rgba(255,255,255,.58); color:#4f5f78; line-height:1.5}
-    .goalStep b{color:#263149}.goalStep small{color:#c85b58;font-weight:900}
-
-
-    .dbBox{border-color:rgba(156,164,255,.34); background:linear-gradient(180deg,rgba(248,246,255,.88),rgba(255,255,255,.60))}
-    .checkGrid{display:grid; gap:8px; margin-top:12px}
-    .checkItem{display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid rgba(156,164,255,.22); border-radius:16px; background:rgba(255,255,255,.58); color:#4f5f78; line-height:1.55}
-    .checkItem b{color:#263149}
-    .privacyNote{margin-top:12px; padding:12px 14px; border-radius:18px; background:rgba(255,246,240,.80); color:#7b6670; line-height:1.65; border:1px solid rgba(255,139,112,.22)}
-    .schemaPreview{width:100%; min-height:88px; margin-top:10px; padding:12px; border:1px solid rgba(156,164,255,.22); border-radius:16px; background:rgba(255,255,255,.68); color:#536278; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; line-height:1.55}
-
-    .calendarPaste{width:100%; min-height:96px; resize:vertical; margin-top:12px; padding:12px 14px; border:1px solid rgba(255,139,112,.35); border-radius:18px; background:rgba(255,255,255,.78); color:#39465f; line-height:1.65}
-    .miniList{display:grid; gap:8px; margin-top:12px}.miniItem{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid rgba(255,139,112,.22); border-radius:16px; background:rgba(255,255,255,.6); color:#536278; font-weight:800}.miniItem small{color:#c75d50; font-weight:900}.softNote{margin-top:10px; padding:11px 13px; border-radius:16px; background:rgba(255,242,237,.72); color:#7c6670; font-size:13px; line-height:1.65}
-
-    .aiBox{border-color:rgba(237,103,168,.28); background:linear-gradient(180deg,rgba(255,246,250,.9),rgba(255,255,255,.62))}
-    .aiActionGrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px}
-    .aiPromptPreview{width:100%; min-height:112px; margin-top:12px; resize:vertical; padding:12px 14px; border:1px solid rgba(237,103,168,.24); border-radius:18px; background:rgba(255,255,255,.72); color:#4b5870; line-height:1.65; font-size:13px}
-    .signalList{display:grid; gap:8px; margin-top:12px}.signalItem{padding:10px 12px; border-radius:16px; background:rgba(255,255,255,.62); border:1px solid rgba(237,103,168,.18); color:#56647b; line-height:1.55}.signalItem b{color:#c8524b}
-
-    @media(max-width:920px){.heroActions{position:static; margin-top:22px; justify-content:flex-start}.layout{grid-template-columns:1fr}.insightGrid{grid-template-columns:1fr}.choiceGrid{grid-template-columns:repeat(2,1fr)}.quickFields{grid-template-columns:1fr}}
-    @media(max-width:560px){.app{width:calc(100% - 20px); padding-top:10px}.hero,.panel,.quick{padding:20px; border-radius:26px}h1{font-size:58px}.choice{min-height:104px}}
-
-    .dbBox .checkItem span:first-child{display:grid;place-items:center;width:32px;height:32px;border-radius:12px;background:linear-gradient(135deg,#fff0e8,#f7e9ff);font-weight:900;color:var(--coral)}
-
-    .autoInsightBox{border-color:rgba(237,103,168,.32); background:linear-gradient(180deg,rgba(255,246,250,.95),rgba(255,255,255,.62))}
-    .aiPreviewGrid{display:grid; gap:10px; margin-top:12px}
-    .aiPreviewCard{padding:13px 14px; border:1px solid rgba(237,103,168,.20); border-radius:18px; background:rgba(255,255,255,.68); color:#4d5b72; line-height:1.62}
-    .aiPreviewCard b{color:#c84f74}
-    .signalMeter{height:12px; overflow:hidden; border-radius:999px; background:#fff1ee; border:1px solid rgba(255,139,112,.18); margin:11px 0 4px}
-    .signalMeter span{display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#ff7d69,#ed67a8,#9ca4ff)}
-    .reflectionQuote{margin-top:12px; padding:13px 14px; border-radius:18px; background:rgba(255,248,242,.9); border:1px solid rgba(255,139,112,.22); color:#76566a; line-height:1.7}
-
+    *{box-sizing:border-box} body{margin:0;min-height:100vh} button,input,textarea,select{font:inherit} button{cursor:pointer}
+    .app{width:min(1220px,calc(100% - 28px));margin:0 auto;padding:28px 0 80px}
+    .hero{display:flex;justify-content:space-between;gap:22px;align-items:flex-start;padding:28px;border:1px solid rgba(255,255,255,.75);border-radius:34px;background:rgba(255,253,249,.78);box-shadow:var(--shadow);backdrop-filter:blur(20px)}
+    .badge{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;background:#fff1e8;color:#a75d50;font-weight:800;font-size:13px}
+    h1{margin:14px 0 10px;font-size:clamp(34px,5vw,58px);letter-spacing:-.06em;line-height:1.04}.lead{max-width:700px;color:var(--muted);font-size:17px;line-height:1.8;margin:0}.heroActions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .btn{border:0;border-radius:18px;font-weight:900;padding:13px 17px;transition:.16s;box-shadow:0 12px 30px rgba(125,75,65,.08)}.btn:hover{transform:translateY(-1px)}.primary{color:white;background:linear-gradient(135deg,var(--coral),#ef9a75 56%,#caa6ff)}.soft{color:#704c49;background:#fff;border:1px solid var(--line)}.danger{color:#b84f4a;background:#fff0ef;border:1px solid #ffd3cd}.tiny{padding:8px 11px;border-radius:13px;font-size:13px}
+    .grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:20px;margin-top:20px}.panel{padding:22px;border:1px solid rgba(255,255,255,.75);border-radius:30px;background:rgba(255,253,249,.76);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+    .sectionHead{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:16px}.eyebrow{margin:0 0 5px;color:#d67666;font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.sectionHead h2,.panel h2{margin:0;font-size:25px;letter-spacing:-.04em}.count{padding:7px 11px;border-radius:999px;background:#fff0e7;color:#9b615a;font-weight:900}
+    .quick{position:fixed;right:22px;bottom:22px;z-index:50;width:min(500px,calc(100vw - 28px));padding:21px;border-radius:30px;background:rgba(255,253,249,.92);box-shadow:0 28px 90px rgba(104,68,72,.22);border:1px solid rgba(255,255,255,.8);backdrop-filter:blur(22px);animation:pop .24s ease both}@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}.close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:0;border-radius:99px;background:#fff4ef;color:#9d706c;font-size:24px}.quick h2{margin:0;font-size:25px;letter-spacing:-.04em}.quick p{color:var(--muted);margin:7px 0 14px}.choiceTitle{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-weight:900}.choiceTitle span{color:#a98884;font-size:12px}.choices{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.choice{min-height:74px;border:1px solid #f0dcd4;background:#fffdfa;border-radius:19px;display:grid;place-items:center;gap:4px;padding:9px 5px;color:#5d3f3c}.choice .emoji{font-size:24px}.choice b{font-size:11px}.choice.selected{background:linear-gradient(180deg,#fff0e8,#fffdfa);border-color:#ef9a83;box-shadow:0 12px 28px rgba(239,123,108,.16)}
+    .quickFooter{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:15px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.inputLine{display:grid;gap:8px;margin-top:12px}.inputLine input,.inputLine textarea,.inputLine select{width:100%;border:1px solid #efd8cf;border-radius:16px;background:#fffdf9;padding:12px 13px;color:var(--ink);outline:none}.inputLine textarea{min-height:70px;resize:vertical}.taskChips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chip{border:1px solid #edd8d1;border-radius:999px;background:#fff;padding:8px 10px;color:#6d4d49}.chip.on{background:#fff0e7;border-color:#ef9a83;color:#a75349;font-weight:900}
+    .logs{display:grid;gap:12px}.log{padding:16px;border-radius:23px;background:rgba(255,255,255,.72);border:1px solid #f1ddd4}.logTop{display:flex;justify-content:space-between;align-items:center;color:#9a7d79;font-weight:900;font-size:13px}.logMain{display:flex;gap:13px;align-items:flex-start;margin-top:9px}.big{width:52px;height:52px;border-radius:18px;background:#fff1e9;display:grid;place-items:center;font-size:28px;flex:0 0 auto}.log h3{margin:0 0 6px;font-size:18px}.log p{margin:4px 0;color:#745b57;line-height:1.65}.muted{color:var(--muted);font-size:13px}.empty{text-align:center;padding:54px 18px;border:1px dashed #eacfc4;border-radius:24px;color:var(--muted);background:rgba(255,255,255,.42)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab{border:1px solid #edd8d1;background:#fff;border-radius:999px;padding:8px 12px;color:#73504d;font-weight:900}.tab.on{background:#ffefe7;border-color:#ef9a83;color:#a75349}.chart{height:180px;border-radius:22px;background:linear-gradient(180deg,#fff7f0,#fffdf9);border:1px solid #f1ddd4;padding:14px;margin-bottom:16px}.bars{display:flex;align-items:flex-end;gap:8px;height:125px}.barWrap{flex:1;display:grid;align-items:end;height:100%;gap:5px;text-align:center}.bar{border-radius:12px 12px 5px 5px;background:linear-gradient(180deg,#ef7b6c,#ffc7b5);min-height:6px}.bar.neg{background:linear-gradient(180deg,#c9b9ff,#efeaff)}.barLabel{font-size:11px;color:#9a7d79}.insights{display:grid;gap:10px}.insight{padding:14px;border-radius:20px;background:#fff;border:1px solid #f0ded6}.insight b{display:block;margin-bottom:5px}.textarea{width:100%;min-height:230px;border:1px solid #efd8cf;border-radius:20px;background:#fffdf9;padding:14px;line-height:1.65;color:var(--ink);resize:vertical}.sideActions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 0}.box{margin-top:15px;padding:15px;border-radius:22px;background:rgba(255,244,237,.72);border:1px solid #f1ddd4}.box h3{margin:0 0 9px}.setting{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:10px;color:#6e514e;font-weight:800}.setting input[type=text],.setting input[type=email],.setting select{max-width:230px;border:1px solid #ecd4cb;border-radius:13px;background:#fff;padding:8px 10px}.weather{font-size:34px;margin-right:8px}.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 14px}.kpi div{background:#fff;border:1px solid #f0ded6;border-radius:18px;padding:11px;text-align:center}.kpi b{display:block;font-size:21px}.modal{position:fixed;inset:0;z-index:70;background:rgba(89,61,60,.28);backdrop-filter:blur(10px);display:grid;place-items:center;padding:20px}.modalCard{width:min(860px,100%);max-height:90vh;overflow:auto;border-radius:32px;background:#fffdf9;padding:24px;box-shadow:0 30px 90px rgba(78,50,54,.24);border:1px solid white;position:relative}.toast{position:fixed;left:50%;bottom:28px;z-index:100;transform:translateX(-50%);background:#513837;color:white;padding:12px 18px;border-radius:999px;box-shadow:0 18px 40px rgba(81,56,55,.25);font-weight:800}
+    @media(max-width:920px){.hero,.grid{display:block}.heroActions{justify-content:flex-start;margin-top:14px}.panel{margin-top:18px}.choices{grid-template-columns:repeat(3,1fr)}.kpi{grid-template-columns:1fr}.quick{right:12px;bottom:12px}.grid{margin-top:0}}
   </style>
 </head>
 <body>
-  <div id="app" class="app"></div>
-  <script>
-    const STORAGE_KEY='namilog.quick-check.logs.v1';
-    const SETTINGS_KEY='namilog.quick-check.settings.v1';
-    const TASKS_KEY='namilog.taskCandidates.v1';
-    const CALENDAR_KEY='namilog.calendarItems.v1';
-    const PROFILE_KEY='namilog.profile.v1';
-    const GOOGLE_KEY='namilog.googleCalendar.v1';
-    const BASE_PATH='/Namilog/';
-    const VERSION='v16 ai-insight-preview';
-    const emotions=[
-      {id:'fun',emoji:'😄',label:'楽しい',score:2},{id:'good',emoji:'🙂',label:'いい感じ',score:2},{id:'calm',emoji:'😌',label:'穏やか',score:1},{id:'tired',emoji:'🥺',label:'少ししんどい',score:-2},{id:'cloudy',emoji:'☁️',label:'モヤモヤ',score:-1}
-    ];
-    const progresses=[
-      {id:'smooth',emoji:'🚀',label:'順調',score:2},{id:'okay',emoji:'👌',label:'まあまあ',score:1},{id:'little',emoji:'🌱',label:'少し進んだ',score:1},{id:'scattered',emoji:'🌀',label:'散らかった',score:-1},{id:'stuck',emoji:'🧱',label:'詰まった',score:-2}
-    ];
-    const defaultTasks=['資料作成','会議','顧客対応','研修','1on1','実装','考える時間','日報'];
-    const defaultSettings={intervalMinutes:120, browserNotification:false};
-    const defaultProfile={name:'',email:'',team:'',privateMode:true};
-    let state={logs:loadLogs(),settings:loadSettings(),profile:loadProfile(),google:loadGoogleSettings(),tasks:loadTasks(),calendarItems:loadCalendarItems(),calendarText:'',range:'day',quickOpen:false,draft:blankDraft(),toast:'',permission:getPermission(),registration:null,filterTask:'',newTask:''};
-
-    function blankDraft(){return{emotion:null,progress:null,task:'',memo:'',nextAction:''}}
-    function safeParse(raw,fallback){try{return raw?JSON.parse(raw):fallback}catch{return fallback}}
-    function loadLogs(){return safeParse(localStorage.getItem(STORAGE_KEY),[]).map(normalizeLog).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))}
-    function loadSettings(){return {...defaultSettings,...safeParse(localStorage.getItem(SETTINGS_KEY),{})}}
-    function loadProfile(){return {...defaultProfile,...safeParse(localStorage.getItem(PROFILE_KEY),{})}}
-    function saveProfile(){localStorage.setItem(PROFILE_KEY,JSON.stringify(state.profile))}
-    function loadGoogleSettings(){return {clientId:'',connected:false,lastSyncAt:'',lastError:'',...safeParse(localStorage.getItem(GOOGLE_KEY),{})}}
-    function saveGoogleSettings(){localStorage.setItem(GOOGLE_KEY,JSON.stringify(state.google))}
-    function profileLabel(){return state.profile.name||state.profile.email||'自分だけのログ'}
-    function profileHint(){return state.profile.email?`このブラウザ内では ${state.profile.email} の個人ログとして扱います。`: '今はこのブラウザ内だけの個人ログです。メールを入れると、後で個別アカウント化しやすくなります。'}
-    function loadTasks(){const raw=safeParse(localStorage.getItem(TASKS_KEY),null); return Array.isArray(raw)&&raw.length?raw:defaultTasks}
-    function loadCalendarItems(){const raw=safeParse(localStorage.getItem(CALENDAR_KEY),[]); return Array.isArray(raw)?raw:[]}
-    function saveLogs(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state.logs))}
-    function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(state.settings))}
-    function saveTasks(){localStorage.setItem(TASKS_KEY,JSON.stringify(state.tasks))}
-    function saveCalendarItems(){localStorage.setItem(CALENDAR_KEY,JSON.stringify(state.calendarItems))}
-    
-    function calendarTaskLabel(item){return `${item.time||''}${item.time?' ':''}${item.title}`.trim()}
-    function allTaskOptions(){return Array.from(new Set([...state.calendarItems.map(calendarTaskLabel),...state.tasks])).filter(Boolean)}
-    function draftWithSuggestedTask(){const d=blankDraft(); const suggested=currentCalendarTask(); if(suggested)d.task=suggested; return d}
-    function minutesOf(t){const m=String(t||'').match(/(\d{1,2}):(\d{2})/); return m?Number(m[1])*60+Number(m[2]):null}
-    function currentCalendarTask(){if(!state.calendarItems.length)return ''; const now=new Date(); const n=now.getHours()*60+now.getMinutes(); let best=null; for(const item of state.calendarItems){const start=minutesOf(item.time); const end=minutesOf(item.end); if(start==null)continue; if(end!=null&&n>=start&&n<=end){best=item; break} if(start<=n)best=item;} return best?calendarTaskLabel(best):calendarTaskLabel(state.calendarItems[0])}
-    function parseCalendarText(text){
-      return text.split(/\n+/).map(line=>line.trim()).filter(Boolean).map((line,i)=>{
-        let m=line.match(/^(\d{1,2}:\d{2})\s*(?:[-〜~]\s*(\d{1,2}:\d{2}))?\s*(.+)$/);
-        if(m)return{id:`cal-${Date.now()}-${i}`,time:m[1],end:m[2]||'',title:m[3].replace(/^[-–—\s]+/,'').trim()};
-        m=line.match(/^(.+?)\s+(\d{1,2}:\d{2})(?:\s*[-〜~]\s*(\d{1,2}:\d{2}))?$/);
-        if(m)return{id:`cal-${Date.now()}-${i}`,time:m[2],end:m[3]||'',title:m[1].trim()};
-        return{id:`cal-${Date.now()}-${i}`,time:'',end:'',title:line};
-      }).filter(x=>x.title)
-    }
-    function getPermission(){if(!('Notification' in window)) return 'unsupported'; return Notification.permission}
-    function findEmotion(x){if(!x)return null; return emotions.find(e=>e.id===x.id||e.label===x.label||e.emoji===x.emoji)||x}
-    function findProgress(x){if(!x)return null; const alias={'少しずつ':'少し進んだ','バタついてる':'散らかった','進んでない':'詰まった'}; return progresses.find(p=>p.id===x.id||p.label===x.label||p.label===alias[x.label]||p.emoji===x.emoji)||x}
-    function normalizeLog(log){
-      const emotion=findEmotion(log.emotion); const progress=findProgress(log.progress);
-      return {...log, id:log.id||String(Date.now()+Math.random()), createdAt:log.createdAt||new Date().toISOString(), emotion, progress, task:log.task||log.taskName||'', memo:log.memo||'', nextAction:log.nextAction||'', profileName:log.profileName||'', profileEmail:log.profileEmail||'', team:log.team||'', emotionScore:Number.isFinite(log.emotionScore)?log.emotionScore:(emotion?.score??0), progressScore:Number.isFinite(log.progressScore)?log.progressScore:(progress?.score??0)};
-    }
-    function fmtTime(s){return new Date(s).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}
-    function fmtDate(s=new Date()){return new Date(s).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})}
-    function startOf(range){const d=new Date(); d.setHours(0,0,0,0); if(range==='week') d.setDate(d.getDate()-6); if(range==='month') d.setDate(d.getDate()-29); return d}
-    function rangeLogs(range=state.range){const start=startOf(range); return state.logs.filter(l=>new Date(l.createdAt)>=start)}
-    function todayLogs(){return rangeLogs('day')}
-    function scoreOf(log){const e=Number.isFinite(log.emotionScore)?log.emotionScore:0; const p=Number.isFinite(log.progressScore)?log.progressScore:0; return Math.max(-2,Math.min(2,(e+p)/2))}
-    function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0}
-    function topBy(items){const m={}; items.filter(Boolean).forEach(v=>m[v]=(m[v]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]}
-    function weatherFor(score){if(score>=1.4)return'☀️ 晴れ'; if(score>=.4)return'🌤️ 晴れ時々くもり'; if(score>=-.3)return'☁️ くもり'; if(score>=-1.2)return'🌧️ 小雨'; return'⛈️ 荒れ模様'}
-    function wordsFrom(logs){
-      const stop=['です','ます','した','する','こと','これ','それ','ため','今日','明日','確認','対応','作業','感じ','少し'];
-      const text=logs.map(l=>[l.task,l.memo,l.nextAction].join(' ')).join(' ');
-      const tokens=(text.match(/[ぁ-んァ-ン一-龠A-Za-z0-9]{2,}/g)||[]).filter(w=>!stop.includes(w));
-      const m={}; tokens.forEach(w=>m[w]=(m[w]||0)+1); return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8);
-    }
-    function taskStats(logs){
-      const map={}; logs.forEach(l=>{const t=l.task||'タスク未設定'; if(!map[t])map[t]=[]; map[t].push(scoreOf(l));});
-      return Object.entries(map).map(([task,scores])=>({task,count:scores.length,avg:avg(scores)})).sort((a,b)=>a.avg-b.avg);
-    }
-    function dailyText(){
-      const logs=todayLogs().slice().reverse(); const wLogs=rangeLogs('week'); const score=avg(logs.map(scoreOf)); const weekly=makeWeeklyInsights(wLogs);
-      if(!logs.length)return '今日はまだ波の記録がありません。';
-      return [`# NamiLog 日報 ${fmtDate()}`,`記録者：${profileLabel()}`,'',`## 今日のこころ天気`,`- ${weatherFor(score)}。平均スコアは ${score.toFixed(1)} です。`,'','## 今日の波の記録',...logs.map(l=>`- ${fmtTime(l.createdAt)} ${l.emotion?.emoji||''} ${l.emotion?.label||''}${l.progress?` / ${l.progress.emoji} ${l.progress.label}`:''}${l.task?`｜${l.task}`:''}${l.memo?`\n  - メモ：${l.memo}`:''}${l.nextAction?`\n  - 次：${l.nextAction}`:''}`),'','## 今日のまとめ','- 気分の波：','- 進んだこと：','- 詰まったこと：','- 明日の一手：','','## 上長面談のたね',...weekly.managerSeeds.map(x=>`- ${x}`)].join('\n')
-    }
-    function weeklyText(){const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); return [`# NamiLog 週報のたね ${fmtDate()}`,`記録者：${profileLabel()}`,'',`## 今週のこころ天気`,`- ${insights.weather}。${insights.summary}`,'','## 目立った波','- 良かった時間・タスク：','- しんどかった時間・タスク：','- 回復につながった要素：','','## よく出た言葉',...(insights.words.length?insights.words.map(([w,c])=>`- ${w}：${c}回`):['- まだ十分なメモがありません']),'','## 上長面談のたね',...insights.managerSeeds.map(x=>`- ${x}`),'','## 来週の一手','- '].join('\n')}
-    function makeWeeklyInsights(logs){
-      const score=avg(logs.map(scoreOf)); const weather=weatherFor(score); const topEmotion=topBy(logs.map(l=>l.emotion?.label)); const topProgress=topBy(logs.map(l=>l.progress?.label)); const stats=taskStats(logs); const low=stats[0]; const high=stats.slice().reverse()[0]; const words=wordsFrom(logs);
-      const seeds=[]; if(low&&low.count>=1&&low.avg<0) seeds.push(`「${low.task}」のとき波が下がりやすそうです。詰まり方や支援が必要な点を話す材料になります。`); if(high&&high.count>=1&&high.avg>0) seeds.push(`「${high.task}」のとき比較的よい波が出ています。得意な進め方の再現条件を探せます。`); if(topProgress) seeds.push(`進捗は「${topProgress[0]}」が目立ちました。忙しさより前進感があるかを見るとよさそうです。`); if(!seeds.length) seeds.push('まだ面談材料にするにはログが少なめです。通知から数件ためるところから始めましょう。');
-      return {score,weather,topEmotion,topProgress,words,managerSeeds:seeds, summary:`感情は「${topEmotion?topEmotion[0]:'未記録'}」、進捗は「${topProgress?topProgress[0]:'未記録'}」が目立ちます。`};
-    }
-    function escape(s=''){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
-    function render(){
-      const logs=rangeLogs(); const tLogs=todayLogs(); const insights=makeWeeklyInsights(rangeLogs('week')); const allTasks=allTaskOptions();
-      document.getElementById('app').innerHTML=`
-        <section class="hero">
-          <span class="pill">〜 NamiLog</span><span class="pill profilePill">👤 ${escape(profileLabel())}</span><p class="eyebrow" style="margin-top:28px">NAMILOG</p><h1>NamiLog</h1>
-          <p class="lead">感情の波と仕事の進み方を、やさしく見える化するログアプリです。個人のログとしてそっと蓄積し、日報・週報・面談のヒントまで自然につなげます。</p>
-          <div class="heroActions"><button class="primary" data-action="openQuick">今の波を残す</button><button class="ghost" data-action="copyDaily">日報をコピー</button></div>
-        </section>
-        <main class="layout">
-          <section class="panel">
-            <div class="sectionHead"><div><p class="eyebrow">MOTIVATION WAVE</p><h2>モチベーションの波</h2></div><span class="badge">${logs.length}件</span></div>
-            <div class="tabs"><button class="tab ${state.range==='day'?'active':''}" data-range="day">日</button><button class="tab ${state.range==='week'?'active':''}" data-range="week">週</button><button class="tab ${state.range==='month'?'active':''}" data-range="month">月</button></div>
-            <div class="waveCard"><div class="waveTop"><h3>今の波形</h3><span class="weather">${insights.weather}</span></div>${waveSvg(logs)}</div>
-            <div class="insightGrid">
-              <div class="insight"><h3>今のこころ天気</h3><p>${insights.weather}。平均スコアは ${insights.score.toFixed(1)} です。</p></div>
-              <div class="insight"><h3>多かった感情と進捗</h3><p>感情は「${insights.topEmotion?insights.topEmotion[0]:'未記録'}」、進捗は「${insights.topProgress?insights.topProgress[0]:'未記録'}」が目立ちます。</p></div>
-              <div class="insight"><h3>よく出た言葉</h3><p>${insights.words.length?insights.words.map(([w,c])=>`${escape(w)}(${c})`).join('、'):'タスクやメモが増えると、よく出た言葉を拾えます。'}</p></div>
-              <div class="insight"><h3>上長面談のたね</h3><p>${insights.managerSeeds[0]}</p></div>
-              <div class="insight"><h3>予定とのつながり</h3><p>${state.calendarItems.length?`今日は${state.calendarItems.length}件の予定候補があります。Quick Checkで選ぶと、予定ごとの波が見えてきます。`:'予定を貼り付けると、タスクと感情のつながりを拾えるようになります。'}</p></div>
-            </div>
-          </section>
-          <aside class="panel"><div class="sectionHead"><div><p class="eyebrow">DAILY REFLECTION</p><h2>日報のたね</h2></div></div><textarea class="dailyTextarea" readonly>${escape(dailyText())}</textarea><div class="sideActions"><button class="primary small" data-action="copyDaily">コピー</button><button class="ghost small" data-action="copyWeekly">週報コピー</button><button class="ghost small" data-action="exportJson">JSON出力</button><button class="danger small" data-action="clearAll">全削除</button></div>
-            ${googleCalendarHtml()}
-            ${googleOpsHtml()}
-            ${profileHtml()}
-            ${productionPlanHtml()}
-            ${accountDbRoadmapHtml()}
-            ${aiInsightHtml()}
-            ${aiAutoPreviewHtml()}
-            ${productGoalHtml()}
-            ${settingsHtml()}
-            <div class="settingsBox"><h3>カレンダー予定の取り込み</h3><p class="hint">Googleカレンダー同期前の準備版です。今日の予定を貼り付けると、Quick Checkのタスク候補になります。</p><textarea id="calendarText" class="calendarPaste" placeholder="例：
-09:30 朝会
-10:00-11:00 顧客MTG
-13:00 企画整理">${escape(state.calendarText)}</textarea><div class="sideActions"><button class="primary small" data-action="importCalendar">予定を取り込む</button><button class="ghost small" data-action="sampleCalendar">サンプル</button><button class="danger small" data-action="clearCalendar">予定クリア</button></div><div class="miniList">${state.calendarItems.slice(0,5).map(item=>`<button class="miniItem" data-calendar-task="${escape(calendarTaskLabel(item))}"><span>${escape(item.title)}</span><small>${escape(item.time||'時刻なし')}</small></button>`).join('')}</div><p class="softNote">次の段階でGoogle OAuthとつなぎ、この予定候補を自動取得します。</p></div>
-            <div class="settingsBox"><h3>今日のタスク候補</h3><p class="hint">手入力の候補も残せます。カレンダー予定と合わせてQuick Checkで選べます。</p><div class="taskInput"><input id="newTask" placeholder="例：商談準備、週報、1on1" value="${escape(state.newTask)}"><button class="ghost small" data-action="addTask">追加</button></div><div class="chipRow">${allTasks.map(t=>`<button class="chip" data-task="${escape(t)}">${escape(t)}</button>`).join('')}</div></div>
-          </aside>
-          <section class="panel"><div class="sectionHead"><div><p class="eyebrow">TODAY</p><h2>今日の波</h2></div><span class="badge">${tLogs.length}件</span></div>${logList(tLogs)}</section>
-          <section class="panel"><div class="sectionHead"><div><p class="eyebrow">1ON1 SEEDS</p><h2>上長面談のたね</h2></div></div><div class="logList">${insights.managerSeeds.map(s=>`<article class="logCard" style="grid-template-columns:auto 1fr"><div class="emojiBox"><span>💬</span></div><div><h3>話す価値がありそう</h3><p>${escape(s)}</p></div></article>`).join('')}</div></section>
-        </main><div class="version">${VERSION}</div>${state.quickOpen?quickModal():''}${state.toast?`<div class="toast">${escape(state.toast)}</div>`:''}`;
-      bindEvents();
-    }
-    function waveSvg(logs){
-      const ordered=logs.slice().reverse(); const w=740,h=210,pad=38; const n=Math.max(ordered.length,1); const pts=ordered.length?ordered.map((l,i)=>{const x=pad+(i/(Math.max(n-1,1)))*(w-pad*2); const y=pad+((2-scoreOf(l))/4)*(h-pad*2); return [x,y,l]}):[[pad,h/2,null],[w-pad,h/2,null]];
-      const d=pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' '); const area=`M${pts[0][0]} ${h-pad} `+pts.map(p=>`L${p[0]} ${p[1]}`).join(' ')+` L${pts[pts.length-1][0]} ${h-pad} Z`; const labels=pts.filter((_,i)=>i===0||i===pts.length-1||i%4===0).map(([x,y,l])=>`<text class="axis" x="${x}" y="${h-8}" text-anchor="middle">${l?fmtTime(l.createdAt):''}</text>`).join('');
-      return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="モチベーションの波"><defs><linearGradient id="warmLine" x1="0" x2="1"><stop offset="0%" stop-color="#ff7d69"/><stop offset="55%" stop-color="#ed67a8"/><stop offset="100%" stop-color="#9ca4ff"/></linearGradient><linearGradient id="warmArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ed67a8" stop-opacity=".20"/><stop offset="100%" stop-color="#9ca4ff" stop-opacity=".03"/></linearGradient></defs><line class="grid" x1="${pad}" y1="${pad}" x2="${w-pad}" y2="${pad}"/><line class="mid" x1="${pad}" y1="${h/2}" x2="${w-pad}" y2="${h/2}"/><line class="grid" x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}"/><text class="axis" x="12" y="${pad+4}">高</text><text class="axis" x="12" y="${h/2+4}">中</text><text class="axis" x="12" y="${h-pad+4}">低</text><path class="area" d="${area}"/><path class="line" d="${d}"/>${pts.map(([x,y])=>`<circle class="dot" cx="${x}" cy="${y}" r="5"/>`).join('')}${labels}</svg>`
-    }
-    function logList(logs){if(!logs.length)return`<div class="empty"><div><p style="font-size:42px;margin:0">🌤️</p><h3>まだ波の記録がありません</h3><p>「今の波を残す」から、まず1件だけ残してみましょう。</p></div></div>`; return `<div class="logList">${logs.map(l=>`<article class="logCard"><div class="emojiBox"><span>${l.emotion?.emoji||'〜'}</span></div><div><div class="time">${fmtTime(l.createdAt)}</div><h3>${escape(l.emotion?.label||'未選択')}${l.progress?` / ${l.progress.emoji} ${escape(l.progress.label)}`:''}</h3>${l.task?`<p>タスク：${escape(l.task)}</p>`:''}${l.memo?`<p>メモ：${escape(l.memo)}</p>`:''}${l.nextAction?`<p>次：${escape(l.nextAction)}</p>`:''}</div><button class="danger small" data-delete="${l.id}">削除</button></article>`).join('')}</div>`}
-    function productionPlanHtml(){return `<div class="settingsBox dbBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>個別アカウント本番化</h3><p class="hint">全社利用では、本人だけが自分のログを見られるDB保存に移行します。今日はその移行準備まで入れます。</p></div><span class="statusPill granted">準備中</span></div><div class="checkGrid"><div class="checkItem"><span>🔐</span><span><b>本人だけ参照</b><br>ログは user_id に紐づけ、Row Level Security で本人のデータだけ読める設計にします。</span></div><div class="checkItem"><span>📦</span><span><b>移行しやすいJSON</b><br>現在のローカルログを profile / logs に分けて出力できます。DB投入の前段に使えます。</span></div><div class="checkItem"><span>🗓️</span><span><b>Google連携の単位</b><br>カレンダー連携はユーザーごとに許可し、予定タイトルだけをタスク候補として保存する想定です。</span></div></div><div class="sideActions"><button class="primary small" data-action="copySchema">DBスキーマをコピー</button><button class="ghost small" data-action="copyRls">RLS設計をコピー</button><button class="ghost small" data-action="importJson">JSON取り込み</button><input id="jsonImportFile" type="file" accept="application/json" style="display:none"></div><textarea class="schemaPreview" readonly>${escape(schemaPreviewText())}</textarea><p class="privacyNote">共有はデフォルトでは行いません。日報・週報・面談のたねは、本人がコピーして必要な範囲だけ共有する設計です。</p></div>`}
-    function profileHtml(){return `<div class="settingsBox profileBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>マイログ設定</h3><p class="hint">全社利用に向けた個別アカウント準備版です。今はこのブラウザ内にだけ保存されます。</p></div><span class="statusPill granted">自分専用</span></div><div class="quickFields" style="grid-template-columns:1fr 1fr;margin-top:12px"><label><span>名前</span><input id="profileName" placeholder="例：佐野" value="${escape(state.profile.name)}"></label><label><span>メール</span><input id="profileEmail" placeholder="例：name@example.com" value="${escape(state.profile.email)}"></label><label class="wide"><span>所属・チーム</span><input id="profileTeam" placeholder="例：営業推進 / A班" value="${escape(state.profile.team)}"></label></div><div class="sideActions"><button class="primary small" data-action="saveProfile">マイログ設定を保存</button><button class="ghost small" data-action="copyAccountPlan">アカウント設計メモをコピー</button></div><p class="softNote">${escape(profileHint())}<br>次段階ではGoogleログイン/Supabase等につなぎ、端末をまたいでも本人だけが参照できる形にします。</p></div>`}
-
-    function googleCalendarHtml(){
-      const connected=state.google.connected; const last=state.google.lastSyncAt?`最終取得：${fmtTime(state.google.lastSyncAt)}`:'まだ取得していません';
-      return `<div class="settingsBox googleBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>Googleカレンダー連携</h3><p class="hint">Google OAuth Client IDを入れると、本人の今日の予定を取得してタスク候補にできます。</p></div><span class="statusPill ${connected?'granted':''}">${connected?'接続準備OK':'未接続'}</span></div><label class="settingRow" style="align-items:flex-start"><span>OAuth Client ID</span><input id="googleClientId" style="max-width:100%;width:100%" placeholder="xxxxx.apps.googleusercontent.com" value="${escape(state.google.clientId||'')}"></label><div class="sideActions"><button class="primary small" data-action="saveGoogleClient">Client ID保存</button><button class="primary small" data-action="connectGoogleCalendar">Google予定を取得</button><button class="ghost small" data-action="copyGoogleSetup">設定手順をコピー</button></div><p class="hint">${escape(last)}${state.google.lastError?`<br>前回エラー：${escape(state.google.lastError)}`:''}</p><p class="softNote">まずは今日の予定タイトルと時刻だけを取得します。予定内容の本文は保存しません。</p></div>`
-    }
-    function googleSetupText(){return [`# NamiLog Googleカレンダー連携セットアップ`,'','## Google Cloudで行うこと','1. Google Cloud Consoleでプロジェクトを作る','2. Google Calendar APIを有効化する','3. OAuth同意画面を設定する','4. OAuth Client IDを作る。種類は「ウェブアプリ」','5. 承認済みのJavaScript生成元に https://antisanogile.github.io を追加する','6. 作成された Client ID をNamiLogの「OAuth Client ID」に貼り付ける','','## NamiLog側','- 「Client ID保存」→「Google予定を取得」','- 読み取りスコープは calendar.readonly','- 取得した予定はQuick Checkのタスク候補に入る','','## 本番化メモ','- 全社展開では、各自がGoogleログインして本人の予定だけを取得する。','- DB保存する場合も、予定本文ではなく title/start/end/source 程度に絞る。'].join('\n')}
-    function googleOpsHtml(){
-      const hasClient=!!(state.google.clientId||'').trim();
-      const hasEvents=state.calendarItems.length>0;
-      const last=state.google.lastSyncAt?`最終取得：${new Date(state.google.lastSyncAt).toLocaleString('ja-JP')}`:'まだGoogle予定の取得履歴はありません';
-      const checks=[
-        [hasClient?'✅':'⬜','OAuth Client ID','Google Cloudで作ったClient IDが保存されているか'],
-        [hasEvents?'✅':'⬜','予定候補','今日の予定がQuick Checkのタスク候補に出ているか'],
-        ['✅','保存方針','予定本文は保存せず、タイトル・時刻だけを扱う設計'],
-        ['🟡','実運用テスト','朝/昼/夕方に通知から記録し、予定別の波が見えるか確認']
-      ];
-      return `<div class="settingsBox googleOpsBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>Google連携 実運用チェック</h3><p class="hint">OAuth設定後に「予定取得 → Quick Checkで予定選択 → 波グラフ反映」までを確認するためのパネルです。</p></div><span class="statusPill ${hasClient&&hasEvents?'granted':''}">${hasClient&&hasEvents?'確認OK':'確認中'}</span></div><div class="opsChecklist">${checks.map(c=>`<div class="opsItem"><span>${c[0]}</span><span><b>${c[1]}</b><br>${c[2]}</span></div>`).join('')}</div><p class="hint">${escape(last)}${state.google.lastError?`<br>前回エラー：${escape(state.google.lastError)}`:''}</p><div class="sideActions"><button class="primary small" data-action="calendarSelfCheck">連携セルフチェック</button><button class="ghost small" data-action="copyCalendarOps">検証メモをコピー</button><button class="ghost small" data-action="copyCalendarPrivacy">カレンダー保存方針をコピー</button></div><p class="softNote">本番想定では各自が自分のGoogle予定だけを取得します。上長や管理者が個人ログを直接見る設計にはしません。</p></div>`
-    }
-    function calendarOpsMemoText(){
-      const items=state.calendarItems.slice(0,8).map(i=>`- ${i.time||'時刻なし'} ${i.end?`〜${i.end} `:''}${i.title}`).join('\n')||'- まだ予定候補なし';
-      return [`# NamiLog Googleカレンダー連携 検証メモ`,``,`## チェック項目`,`- OAuth Client IDを保存できたか`,`- Google予定を取得できたか`,`- 取得した予定がQuick Checkのタスク候補に出るか`,`- 予定を選んで波を記録できるか`,`- 日報/週報/面談のたねに予定名が反映されるか`,``,`## 現在の状態`,`- Client ID: ${(state.google.clientId||'').trim()?'保存済み':'未保存'}`,`- 予定候補数: ${state.calendarItems.length}件`,`- 最終取得: ${state.google.lastSyncAt||'未取得'}`,`- 前回エラー: ${state.google.lastError||'なし'}`,``,`## 予定候補`,items,``,`## 次に見ること`,`- 波が下がる予定/上がる予定が見えるか`,`- 1on1で話す材料になる粒度か`,`- 予定タイトルだけで十分か、カテゴリも必要か`].join('\n')
-    }
-    function calendarPrivacyText(){return [`# NamiLog カレンダー保存方針`,``,`## 基本方針`,`- 各ユーザー本人の許可で本人のGoogleカレンダーだけを読み取る。`,`- 保存するのは予定タイトル・開始時刻・終了時刻・source程度に絞る。`,`- 予定の本文、参加者、Meet URL、添付ファイルは原則保存しない。`,`- 感情ログは本人だけが参照する個人ログとして扱う。`,`- 日報/週報/面談への共有は、本人がコピーして必要な範囲だけ行う。`,``,`## 目的`,`予定と感情/進捗の関係を見て、「この予定の前後で波が下がる」「この仕事では前進感がある」といった振り返りのきっかけを作る。`].join('\n')}
-
-    function saveGoogleClient(){state.google.clientId=(document.getElementById('googleClientId')?.value||'').trim(); state.google.connected=!!state.google.clientId; state.google.lastError=''; saveGoogleSettings(); toast(state.google.clientId?'Client IDを保存しました':'Client IDを空にしました'); render()}
-    function loadGoogleIdentityScript(){return new Promise((resolve,reject)=>{if(window.google?.accounts?.oauth2){resolve();return} const existing=document.querySelector('script[data-google-identity]'); if(existing){existing.addEventListener('load',resolve,{once:true}); existing.addEventListener('error',reject,{once:true}); return} const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true; s.defer=true; s.dataset.googleIdentity='1'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s)})}
-    async function connectGoogleCalendar(){
-      saveGoogleClient();
-      if(!state.google.clientId){toast('OAuth Client IDを入れてください');return}
-      try{
-        await loadGoogleIdentityScript();
-        const tokenClient=google.accounts.oauth2.initTokenClient({
-          client_id:state.google.clientId,
-          scope:'https://www.googleapis.com/auth/calendar.readonly',
-          callback:async(resp)=>{
-            if(resp.error){state.google.lastError=resp.error; saveGoogleSettings(); toast('Google認証に失敗しました'); render(); return}
-            await fetchGoogleTodayEvents(resp.access_token)
-          }
-        });
-        tokenClient.requestAccessToken({prompt:'consent'});
-      }catch(e){state.google.lastError='Google Identity Servicesを読み込めませんでした'; saveGoogleSettings(); toast('Google連携の準備に失敗しました'); render()}
-    }
-    async function fetchGoogleTodayEvents(accessToken){
-      try{
-        const start=new Date(); start.setHours(0,0,0,0); const end=new Date(start); end.setDate(end.getDate()+1);
-        const params=new URLSearchParams({timeMin:start.toISOString(),timeMax:end.toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'20'});
-        const res=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,{headers:{Authorization:`Bearer ${accessToken}`}});
-        if(!res.ok){throw new Error(`Calendar API ${res.status}`)}
-        const data=await res.json();
-        const items=(data.items||[]).filter(e=>e.status!=='cancelled').map((e,i)=>{
-          const st=e.start?.dateTime||e.start?.date||''; const en=e.end?.dateTime||e.end?.date||''; const sd=st?new Date(st):null; const ed=en?new Date(en):null;
-          return {id:`google-${e.id||Date.now()+'-'+i}`,time:sd&&!isNaN(sd)?sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'',end:ed&&!isNaN(ed)?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'',title:e.summary||'予定名なし',source:'google'}
-        });
-        state.calendarItems=items; state.google.connected=true; state.google.lastSyncAt=new Date().toISOString(); state.google.lastError=''; saveCalendarItems(); saveGoogleSettings(); toast(`${items.length}件の予定を取得しました`); render();
-      }catch(e){state.google.lastError=e.message||'Calendar APIの取得に失敗しました'; saveGoogleSettings(); toast('予定取得に失敗しました'); render()}
-    }
-
-    function aiInsightHtml(){
-      const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); const preview=aiPromptText('weekly').slice(0,520)+'...';
-      return `<div class="settingsBox aiBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AIふりかえりパック</h3><p class="hint">NamiLogのログを、ChatGPT/Geminiに渡して日報・週報・1on1の分析材料にできます。</p></div><span class="statusPill granted">v16</span></div><div class="signalList"><div class="signalItem"><b>今週の問い</b><br>${escape(aiQuestion(insights))}</div><div class="signalItem"><b>分析対象</b><br>直近7日 ${logs.length}件の波、タスク、メモ、次アクションを使います。</div></div><div class="aiActionGrid"><button class="primary small" data-action="copyAiWeekly">AI週次分析をコピー</button><button class="ghost small" data-action="copyAiOneOnOne">1on1分析をコピー</button><button class="ghost small" data-action="copyAiDaily">日報深掘りをコピー</button><button class="ghost small" data-action="copyAiSummary">分析サマリをコピー</button></div><textarea class="aiPromptPreview" readonly>${escape(preview)}</textarea><p class="softNote">本番ではAPI接続にできます。今はまず、本人がコピーしてAIに渡す安全な入口にしています。</p></div>`
-    }
-    function aiQuestion(insights){
-      if(insights.score < -.4) return '今週、波が下がった場面にはどんなタスク・予定・言葉が重なっていたか？';
-      if(insights.score > .8) return '今週うまくいった進め方を、来週も再現する条件は何か？';
-      return '今週の感情と進捗のズレはどこにあり、面談で何を相談するとよさそうか？';
-    }
-    function compactLogsForAi(logs){
-      if(!logs.length) return '- ログはまだありません';
-      return logs.slice().reverse().map(l=>`- ${fmtDate(l.createdAt)} ${fmtTime(l.createdAt)}｜感情:${l.emotion?.label||'未選択'}(${l.emotionScore??0})｜進捗:${l.progress?.label||'未選択'}(${l.progressScore??0})｜タスク:${l.task||'未設定'}｜メモ:${l.memo||''}｜次:${l.nextAction||''}`).join('\n')
-    }
-    function aiPromptText(type='weekly'){
-      const logs=type==='daily'?todayLogs():rangeLogs('week'); const insights=makeWeeklyInsights(logs); const taskLine=taskStats(logs).slice(0,5).map(t=>`${t.task}: 平均${t.avg.toFixed(1)} / ${t.count}件`).join('、')||'まだ不足'; const wordLine=wordsFrom(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ不足';
-      const header=type==='oneonone'?'上長との1on1に向けた分析':type==='daily'?'今日の日報深掘り':'週次ふりかえり分析';
-      return [`# NamiLog ${header}プロンプト`,``,`あなたは業務ジャーナリング分析の伴走者です。以下のNamiLogデータから、本人が日報・週報・上長面談を書きやすくなるように、やさしく具体的に分析してください。断定しすぎず、「仮説」と「次に観察するとよいこと」を分けてください。`,``,`## 目的`,`- 感情/進捗/タスクのつながりを見つける`,`- 日報・週報・1on1で話す材料を作る`,`- 本人を責めず、再現条件と支援ポイントを探す`,``,`## 出力形式`,`1. 今回のこころ天気`,`2. 感情の波の特徴`,`3. 進捗が上がった/下がったタスクの仮説`,`4. よく出た言葉から見える関心事`,`5. 日報または週報にそのまま使える文章`,`6. 上長に相談するとよさそうなこと`,`7. 来週/明日の一手`,``,`## 既存サマリ`,`- こころ天気: ${insights.weather}` ,`- 平均スコア: ${insights.score.toFixed(1)}`,`- 多い感情: ${insights.topEmotion?insights.topEmotion[0]:'未記録'}`,`- 多い進捗: ${insights.topProgress?insights.topProgress[0]:'未記録'}`,`- タスク別傾向: ${taskLine}`,`- よく出た言葉: ${wordLine}`,``,`## ログデータ`,compactLogsForAi(logs)].join('\n')
-    }
-    function aiSummaryText(){const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); return [`# NamiLog 分析サマリ`,`記録者：${profileLabel()}`,`対象：直近7日 / ${logs.length}件`,`こころ天気：${insights.weather}`,`平均スコア：${insights.score.toFixed(1)}`,`多い感情：${insights.topEmotion?insights.topEmotion[0]:'未記録'}`,`多い進捗：${insights.topProgress?insights.topProgress[0]:'未記録'}`,`よく出た言葉：${wordsFrom(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ不足'}`,`上長面談のたね：`,...insights.managerSeeds.map(x=>`- ${x}`)].join('\n')}
-
-    function aiAutoPreviewHtml(){
-      const preview=makeAutoInsight(rangeLogs('week'));
-      const width=Math.max(8,Math.min(100,Math.round((preview.confidence||0)*100)));
-      return `<div class="settingsBox autoInsightBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AI分析プレビュー</h3><p class="hint">API接続前でも、NamiLog内で週次の仮説カードを自動生成します。muute的な「振り返るきっかけ」を先に体験する版です。</p></div><span class="statusPill granted">v16</span></div><div class="signalMeter"><span style="width:${width}%"></span></div><p class="hint">分析材料の充足度：${width}% / ${preview.logs.length}件のログから生成</p><div class="aiPreviewGrid">${preview.cards.map(card=>`<div class="aiPreviewCard"><b>${escape(card.title)}</b><br>${escape(card.body)}</div>`).join('')}</div><div class="reflectionQuote">${escape(preview.quote)}</div><div class="sideActions"><button class="primary small" data-action="copyAutoInsight">この分析をコピー</button><button class="ghost small" data-action="copyAiApiPlan">AI API設計をコピー</button></div><p class="softNote">本番ではOpenAI/Gemini等のAPIで、同じ材料からより自然な文章と相関仮説を生成します。</p></div>`
-    }
-    function makeAutoInsight(logs){
-      const weekly=logs||rangeLogs('week'); const insights=makeWeeklyInsights(weekly); const stats=taskStats(weekly); const words=wordsFrom(weekly);
-      const low=stats.filter(t=>t.avg<-.3).slice(0,2); const high=stats.filter(t=>t.avg>.5).slice(0,2);
-      const cards=[];
-      cards.push({title:'こころ天気',body:`今週は${insights.weather}。平均スコアは${insights.score.toFixed(1)}で、感情は「${insights.topEmotion?insights.topEmotion[0]:'未記録'}」が目立ちます。`});
-      if(high.length) cards.push({title:'波が上がりやすい要素',body:`「${high.map(x=>x.task).join('」「')}」のときは比較的波が上がっています。再現条件を日報や週報に残すとよさそうです。`});
-      if(low.length) cards.push({title:'相談してよさそうな要素',body:`「${low.map(x=>x.task).join('」「')}」のときに波が下がりやすい傾向があります。1on1では、詰まり方や支援の形を話題にできそうです。`});
-      if(words.length) cards.push({title:'よく出た言葉',body:`今週は「${words.slice(0,4).map(([w,c])=>`${w}(${c})`).join('、')}」が多めでした。関心や負荷が集まっているテーマの可能性があります。`});
-      if(cards.length<4) cards.push({title:'次に観察したいこと',body:'感情・進捗・タスクをもう数件ためると、「何をしているときに波が変わるか」が見えやすくなります。'});
-      const quote=weekly.length?`問い：今週の波を上げた条件と、下げた条件は何だった？次の1週間でひとつだけ整えるならどこ？`:'問い：まずは今日のどこか1回、感情と進捗だけでも残してみよう。';
-      return {logs:weekly, cards, quote, confidence:Math.min(1, weekly.length/12)};
-    }
-    function autoInsightText(){
-      const preview=makeAutoInsight(rangeLogs('week'));
-      return [`# NamiLog AI分析プレビュー`,`記録者：${profileLabel()}`,`対象：直近7日 / ${preview.logs.length}件`,``,...preview.cards.map(c=>`## ${c.title}\n${c.body}`),``,`## 振り返りの問い`,preview.quote].join('\n')
-    }
-    function aiApiPlanText(){
-      return [`# NamiLog AI API設計メモ`,``,`## 目的`,`NamiLog内の感情・進捗・タスク・メモをもとに、日報/週報/1on1の材料になる分析カードを自動生成する。`,``,`## 入力`,`- user_id`,`- 対象期間(day/week/month)`,`- logs: created_at, emotion_label, emotion_score, progress_label, progress_score, task, memo, next_action`,`- calendar_events: title, start_at, end_at（必要最小限）`,``,`## 出力`,`- こころ天気`,`- 感情の波の要約`,`- 進捗が上がった/下がったタスク仮説`,`- よく出た言葉`,`- 上長面談で話すとよさそうなこと`,`- 日報/週報にそのまま使える文章`,``,`## 注意`,`- 断定せず「仮説」として返す`,`- 本人を責める表現を避ける`,`- 管理者が個人ログを直接閲覧する前提にしない`,`- 共有は本人がコピーした要約だけにする`].join('\n')
-    }
-
-
-
-
-    function accountDbRoadmapHtml(){
-      return `<div class="settingsBox dbBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>個別アカウント実装ロードマップ</h3><p class="hint">全社利用に向けて、ローカル保存から「本人だけ参照できるDB保存」へ移すための手順を具体化しました。</p></div><span class="statusPill granted">v16</span></div><div class="checkGrid"><div class="checkItem"><span>1</span><span><b>Googleログイン</b><br>社員メールでログインし、auth.uid() をログの user_id として使います。</span></div><div class="checkItem"><span>2</span><span><b>Supabase保存</b><br>profiles / logs / calendar_events に保存。現在のJSON構造をそのまま移行しやすくしています。</span></div><div class="checkItem"><span>3</span><span><b>本人だけ参照</b><br>RLSで「自分のログだけ読める/書ける」状態にして、管理者が個人ログを覗く設計にはしません。</span></div><div class="checkItem"><span>4</span><span><b>任意共有</b><br>上長にはログそのものではなく、本人がコピーした日報・週報・面談のたねだけ共有します。</span></div></div><div class="sideActions"><button class="primary small" data-action="copyAuthFlow">ログイン実装順をコピー</button><button class="ghost small" data-action="copyEnvTemplate">環境変数テンプレをコピー</button><button class="ghost small" data-action="copyMigrationChecklist">移行チェックリストをコピー</button></div><textarea class="schemaPreview" readonly>${escape(accountDbPreviewText())}</textarea><p class="privacyNote">次に本当に接続するには、Supabase URL / anon key と Google OAuth Client ID が必要です。今日の版では、実装手順とデータ境界をアプリ内に固定しました。</p></div>`
-    }
-    function accountDbPreviewText(){return ['ログイン: Google OAuth','保存先: Supabase profiles / logs / calendar_events','権限: RLSで user_id = auth.uid() の行だけ参照','共有: 本人が日報/週報/1on1のたねをコピー'].join('\n')}
-    function authFlowText(){return [`# NamiLog 個別アカウント実装順`,``,`## 目的`,`全社利用時も、社員それぞれが自分だけの感情・進捗・タスクログを作り、本人だけが参照できる状態にする。共有は自動ではなく、本人が日報・週報・1on1のたねをコピーして行う。`,``,`## 実装順`,`1. Supabaseプロジェクトを作成する`,`2. Authentication > Providers で Google を有効化する`,`3. Google Cloud ConsoleでOAuth Client IDを作成する`,`4. Authorized JavaScript origins に https://antisanogile.github.io を追加する`,`5. Redirect URLにSupabaseのcallback URLを追加する`,`6. profiles / logs / calendar_events テーブルを作成する`,`7. RLSを有効化し、auth.uid() = user_id のポリシーを入れる`,`8. NamiLogのlocalStorage保存を、ログイン済みならSupabase保存へ切り替える`,`9. 未ログイン時は今まで通りローカル試用できるようにする`,`10. JSON出力/取り込みで既存ローカルログを移行する`,``,`## 画面で必要な状態`,`- 未ログイン: ローカル保存 / 試用中`,`- ログイン済み: DB保存 / 自分専用ログ`,`- 同期エラー: ローカルに一時退避し、再同期できるようにする`].join('\n')}
-    function envTemplateText(){return [`# NamiLog .env テンプレート`,``,`VITE_SUPABASE_URL=your_supabase_project_url`,`VITE_SUPABASE_ANON_KEY=your_supabase_anon_key`,`VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id`,``,`# GitHub Pages`,`VITE_APP_BASE=/Namilog/`,``,`# 注意`,`# anon key は公開フロントエンドで使う前提のキーです。`,`# サービスロールキーは絶対にブラウザ側へ入れないでください。`,`# 個人ログの保護はRLSポリシーで担保します。`].join('\n')}
-    function migrationChecklistText(){return [`# NamiLog ローカルログ移行チェックリスト`,``,`## 事前確認`,`- [ ] 現在のJSON出力で profile / logs が分かれている`,`- [ ] 各ログに createdAt / emotionScore / progressScore / task が入っている`,`- [ ] Supabaseのlogsテーブルに対応カラムがある`,`- [ ] RLSが有効化されている`,`- [ ] ログインユーザーの user_id に紐づけてinsertできる`,``,`## 移行手順`,`1. NamiLogでJSON出力する`,`2. ログインする`,`3. JSON取り込みで既存ログを読み込む`,`4. 各ログに user_id を付けてDBへ保存する`,`5. DB保存成功後も、念のためローカルバックアップを残す`,``,`## 運用方針`,`- 管理者が社員の個人ログを直接見る画面は作らない`,`- 上長共有は、本人がコピーした日報・週報・面談メモだけにする`,`- 保存期間・削除手段・エクスポート手段を全社展開前に明記する`].join('\n')}
-
-    function productGoalHtml(){
-      const steps=[
-        ['✅','Quick Check','感情・進捗・タスクを短時間で残す','済'],
-        ['✅','モチベーションの波','日/週/月の波形とこころ天気を見る','済'],
-        ['✅','日報・週報のたね','コピーして日報/週報に使える形にする','済'],
-        ['✅','AIふりかえり','ChatGPT/Geminiへ渡す分析プロンプトを作る','済'],
-        ['✅','Google予定の実連携チェック','予定取得とQuick Check候補化の検証導線を追加','済'],
-        ['✅','個別アカウント本番化の設計','Googleログイン + DB + RLSの実装順を整理','済'],
-        ['🟡','DB接続の実装','Supabaseプロジェクト作成後に保存先をDBへ切替','次'],
-        ['✅','AI分析プレビュー','API前の仮説カードをアプリ内生成','済']
-      ];
-      return `<div class="settingsBox goalBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>完成形への地図</h3><p class="hint">muute的な自己理解を、業務ログ・日報・週報・1on1に変換するための要件マップです。</p></div><span class="statusPill granted">v16</span></div><div class="goalSteps">${steps.map(s=>`<div class="goalStep"><span>${s[0]}</span><span><b>${s[1]}</b><br>${s[2]}</span><small>${s[3]}</small></div>`).join('')}</div><div class="sideActions"><button class="primary small" data-action="copyProductBrief">プロダクト要件をコピー</button><button class="ghost small" data-action="copyBuildPlan">残タスクをコピー</button></div><p class="softNote">今日の試作は、個別アカウント化に向けた実装順まで見える状態です。ここから先は、Supabase接続とAI API接続を本当に動かす工程が中心です。</p></div>`
-    }
-    function productBriefText(){return [`# NamiLog プロダクト要件メモ`,``,`## 目的`,`感情・進捗・タスクを短時間で記録し、日報・週報・上長面談の材料に変換する。muuteのように、自分の波や言葉の傾向を可視化して、自己理解と業務改善のきっかけを提供する。`,``,`## 入力`,`- 感情`,`- 進捗`,`- タスク/予定（Googleカレンダー連携）`,`- 30秒メモ`,`- 次アクション`,``,`## 出力`,`- 日報のたね`,`- 週報のたね`,`- モチベーショングラフ（日/週/月）`,`- こころ天気`,`- よく出た言葉`,`- 感情とタスクのつながり`,`- 上長面談のたね`,`- AI分析プロンプト`,``,`## データ方針`,`- 共有ログではなく、本人だけの個別ログ`,`- 上長共有は自動ではなく、本人が必要箇所をコピーして共有`,`- 本番ではGoogleログイン + DB + RLSで本人だけ参照可能にする`].join('\n')}
-    function buildPlanText(){return [`# NamiLog 残タスク`,``,`## すぐ次にやる`,`1. Supabaseプロジェクトを作成し、環境変数を入れる`,`2. Googleログインを通す`,`3. ローカルログをログインユーザーのDBログへ移行する`,``,`## MVP完成まで`,`4. Googleカレンダー予定をユーザーごとに同期`,`5. AI分析をAPI化するか、コピー運用にするか決める`,`6. PWA/デスクトップ通知の安定化`,`7. 小規模チームでログ保存/削除/エクスポートの動作確認`,``,`## 全社展開前`,`8. プライバシー文言・利用規約・ログ保存期間`,`9. 管理者が個人ログを直接見ない設計の確認`,`10. 小規模チームで運用テスト`].join('\n')}
-
-    function settingsHtml(){const label=state.permission==='granted'?'許可済み':state.permission==='denied'?'ブロック中':state.permission==='unsupported'?'非対応':'未許可'; return `<div class="settingsBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>リマインド通知</h3><p class="hint">他の作業中でも、Windows右下からNamiLogがそっと声をかけます。</p></div><span class="statusPill ${state.permission}">${label}</span></div><div class="sideActions"><button class="primary small" data-action="requestNotify">通知オン</button><button class="ghost small" data-action="testNotify">テスト通知</button></div><label class="settingRow"><span>定期的に声をかけてもらう</span><input type="checkbox" data-action="toggleNotify" ${state.settings.browserNotification?'checked':''}></label><label class="settingRow"><span>間隔</span><select data-action="interval"><option value="30" ${state.settings.intervalMinutes==30?'selected':''}>30分</option><option value="60" ${state.settings.intervalMinutes==60?'selected':''}>1時間</option><option value="120" ${state.settings.intervalMinutes==120?'selected':''}>2時間</option><option value="180" ${state.settings.intervalMinutes==180?'selected':''}>3時間</option></select></label><p class="hint">通知クリックでQuick Checkが開きます。定期通知はNamiLogを開いている間に動きます。</p></div>`}
-    function quickModal(){const d=state.draft; return `<div class="modalBackdrop"><div class="quick"><button class="close" data-action="closeQuick">×</button><p class="eyebrow">QUICK CHECK</p><h2>今の波を残そう</h2><p class="quickLead">感情と進み具合を選ぶだけで、日報と週報のたねになります。</p><div class="choiceTitle"><h3>感情</h3><span>1つ選択</span></div><div class="choiceGrid">${emotions.map(e=>`<button class="choice ${d.emotion?.id===e.id?'selected':''}" data-emotion="${e.id}"><span>${e.emoji}</span><strong>${e.label}</strong></button>`).join('')}</div><div class="choiceTitle"><h3>仕事の進み具合</h3><span>任意</span></div><div class="choiceGrid">${progresses.map(p=>`<button class="choice ${d.progress?.id===p.id?'selected':''}" data-progress="${p.id}"><span>${p.emoji}</span><strong>${p.label}</strong></button>`).join('')}</div><div class="quickFields"><label><span>今のタスク</span><select id="draftTask"><option value="">選択なし</option>${allTaskOptions().map(t=>`<option value="${escape(t)}" ${d.task===t?'selected':''}>${escape(t)}</option>`).join('')}</select></label><label><span>30秒メモ</span><input id="draftMemo" placeholder="例：少し詰まったが前進あり" value="${escape(d.memo)}"></label><label class="wide"><span>次にやること</span><input id="draftNext" placeholder="例：上長に相談する/明日確認する" value="${escape(d.nextAction)}"></label></div><div class="modalActions"><button class="primary" data-action="saveQuick">この波を残す</button><button class="ghost" data-action="saveEmotionOnly">感情だけで残す</button><button class="textBtn" data-action="closeQuick">閉じる</button></div></div></div>`}
-    function bindEvents(){
-      document.querySelectorAll('[data-action="openQuick"]').forEach(b=>b.onclick=()=>{state.draft=draftWithSuggestedTask();state.quickOpen=true;render()});
-      document.querySelectorAll('[data-action="closeQuick"]').forEach(b=>b.onclick=()=>{state.quickOpen=false;render()});
-      document.querySelectorAll('[data-action="copyDaily"]').forEach(b=>b.onclick=()=>copyText(dailyText(),'日報のたねをコピーしました'));
-      document.querySelectorAll('[data-action="copyWeekly"]').forEach(b=>b.onclick=()=>copyText(weeklyText(),'週報のたねをコピーしました'));
-      const exp=document.querySelector('[data-action="exportJson"]'); if(exp)exp.onclick=exportJson;
-      const clr=document.querySelector('[data-action="clearAll"]'); if(clr)clr.onclick=()=>{if(confirm('すべてのログを削除しますか？')){state.logs=[];saveLogs();toast('すべて削除しました')}};
-      document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{state.range=b.dataset.range;render()});
-      document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{state.logs=state.logs.filter(l=>l.id!==b.dataset.delete);saveLogs();toast('削除しました')});
-      document.querySelectorAll('[data-emotion]').forEach(b=>b.onclick=()=>{state.draft.emotion=emotions.find(e=>e.id===b.dataset.emotion);render()});
-      document.querySelectorAll('[data-progress]').forEach(b=>b.onclick=()=>{state.draft.progress=progresses.find(p=>p.id===b.dataset.progress);render()});
-      const save=document.querySelector('[data-action="saveQuick"]'); if(save)save.onclick=saveQuick;
-      const saveE=document.querySelector('[data-action="saveEmotionOnly"]'); if(saveE)saveE.onclick=()=>{state.draft.progress=null;saveQuick()};
-      const req=document.querySelector('[data-action="requestNotify"]'); if(req)req.onclick=requestNotify;
-      const test=document.querySelector('[data-action="testNotify"]'); if(test)test.onclick=()=>showBrowserNotification('manual');
-      const toggle=document.querySelector('[data-action="toggleNotify"]'); if(toggle)toggle.onchange=e=>{if(e.target.checked&&Notification.permission!=='granted'){requestNotify();return} state.settings.browserNotification=e.target.checked;saveSettings();render()};
-      const interval=document.querySelector('[data-action="interval"]'); if(interval)interval.onchange=e=>{state.settings.intervalMinutes=Number(e.target.value);saveSettings();setupInterval();toast('通知間隔を更新しました')};
-      const cal=document.getElementById('calendarText'); if(cal)cal.oninput=e=>state.calendarText=e.target.value;
-      const importCal=document.querySelector('[data-action="importCalendar"]'); if(importCal)importCal.onclick=()=>{const items=parseCalendarText(document.getElementById('calendarText')?.value||''); if(!items.length){toast('予定を1行以上入れてね');return} state.calendarItems=items; saveCalendarItems(); toast('予定候補を取り込みました'); render()};
-      const sampleCal=document.querySelector('[data-action="sampleCalendar"]'); if(sampleCal)sampleCal.onclick=()=>{state.calendarText='09:30 朝会\n10:00-11:00 顧客MTG\n13:00 企画整理\n15:00 1on1\n17:30 日報'; render()};
-      const clearCal=document.querySelector('[data-action="clearCalendar"]'); if(clearCal)clearCal.onclick=()=>{state.calendarItems=[]; state.calendarText=''; saveCalendarItems(); toast('予定候補をクリアしました'); render()};
-      document.querySelectorAll('[data-calendar-task]').forEach(b=>b.onclick=()=>{state.draft=draftWithSuggestedTask();state.draft.task=b.dataset.calendarTask;state.quickOpen=true;render()});
-      const saveProf=document.querySelector('[data-action="saveProfile"]'); if(saveProf)saveProf.onclick=()=>{state.profile.name=(document.getElementById('profileName')?.value||'').trim(); state.profile.email=(document.getElementById('profileEmail')?.value||'').trim(); state.profile.team=(document.getElementById('profileTeam')?.value||'').trim(); saveProfile(); toast('マイログ設定を保存しました')};
-      const copyPlan=document.querySelector('[data-action="copyAccountPlan"]'); if(copyPlan)copyPlan.onclick=()=>copyText(accountPlanText(),'アカウント設計メモをコピーしました');
-      const aiWeekly=document.querySelector('[data-action="copyAiWeekly"]'); if(aiWeekly)aiWeekly.onclick=()=>copyText(aiPromptText('weekly'),'AI週次分析プロンプトをコピーしました');
-      const aiOne=document.querySelector('[data-action="copyAiOneOnOne"]'); if(aiOne)aiOne.onclick=()=>copyText(aiPromptText('oneonone'),'1on1分析プロンプトをコピーしました');
-      const aiDaily=document.querySelector('[data-action="copyAiDaily"]'); if(aiDaily)aiDaily.onclick=()=>copyText(aiPromptText('daily'),'日報深掘りプロンプトをコピーしました');
-      const aiSummary=document.querySelector('[data-action="copyAiSummary"]'); if(aiSummary)aiSummary.onclick=()=>copyText(aiSummaryText(),'分析サマリをコピーしました');
-      const autoInsight=document.querySelector('[data-action="copyAutoInsight"]'); if(autoInsight)autoInsight.onclick=()=>copyText(autoInsightText(),'AI分析プレビューをコピーしました');
-      const aiApiPlan=document.querySelector('[data-action="copyAiApiPlan"]'); if(aiApiPlan)aiApiPlan.onclick=()=>copyText(aiApiPlanText(),'AI API設計をコピーしました');
-      const saveG=document.querySelector('[data-action="saveGoogleClient"]'); if(saveG)saveG.onclick=saveGoogleClient;
-      const connectG=document.querySelector('[data-action="connectGoogleCalendar"]'); if(connectG)connectG.onclick=connectGoogleCalendar;
-      const copyG=document.querySelector('[data-action="copyGoogleSetup"]'); if(copyG)copyG.onclick=()=>copyText(googleSetupText(),'Googleカレンダー設定手順をコピーしました');
-      const calCheck=document.querySelector('[data-action="calendarSelfCheck"]'); if(calCheck)calCheck.onclick=()=>{const hasClient=!!(state.google.clientId||'').trim(); const hasEvents=state.calendarItems.length>0; toast(hasClient&&hasEvents?'Google連携の入口は確認OKです':hasClient?'Client IDはOK。次は予定取得を試してね':'まずClient IDを保存してね')};
-      const copyCalOps=document.querySelector('[data-action="copyCalendarOps"]'); if(copyCalOps)copyCalOps.onclick=()=>copyText(calendarOpsMemoText(),'Google連携の検証メモをコピーしました');
-      const copyCalPrivacy=document.querySelector('[data-action="copyCalendarPrivacy"]'); if(copyCalPrivacy)copyCalPrivacy.onclick=()=>copyText(calendarPrivacyText(),'カレンダー保存方針をコピーしました');
-      const copyBrief=document.querySelector('[data-action="copyProductBrief"]'); if(copyBrief)copyBrief.onclick=()=>copyText(productBriefText(),'プロダクト要件をコピーしました');
-      const copyBuild=document.querySelector('[data-action="copyBuildPlan"]'); if(copyBuild)copyBuild.onclick=()=>copyText(buildPlanText(),'残タスクをコピーしました');
-      const copySchema=document.querySelector('[data-action="copySchema"]'); if(copySchema)copySchema.onclick=()=>copyText(supabaseSchemaText(),'DBスキーマをコピーしました');
-      const copyRls=document.querySelector('[data-action="copyRls"]'); if(copyRls)copyRls.onclick=()=>copyText(rlsPolicyText(),'RLS設計をコピーしました');
-      const copyAuthFlow=document.querySelector('[data-action="copyAuthFlow"]'); if(copyAuthFlow)copyAuthFlow.onclick=()=>copyText(authFlowText(),'ログイン実装順をコピーしました');
-      const copyEnvTemplate=document.querySelector('[data-action="copyEnvTemplate"]'); if(copyEnvTemplate)copyEnvTemplate.onclick=()=>copyText(envTemplateText(),'環境変数テンプレをコピーしました');
-      const copyMigrationChecklist=document.querySelector('[data-action="copyMigrationChecklist"]'); if(copyMigrationChecklist)copyMigrationChecklist.onclick=()=>copyText(migrationChecklistText(),'移行チェックリストをコピーしました');
-      const importJsonBtn=document.querySelector('[data-action="importJson"]'); const importFile=document.getElementById('jsonImportFile'); if(importJsonBtn&&importFile)importJsonBtn.onclick=()=>importFile.click(); if(importFile)importFile.onchange=importJsonFromFile;
-      const add=document.querySelector('[data-action="addTask"]'); const input=document.getElementById('newTask'); if(input)input.oninput=e=>state.newTask=e.target.value; if(add)add.onclick=()=>{const v=(document.getElementById('newTask')?.value||'').trim(); if(v&&!state.tasks.includes(v)){state.tasks.push(v);state.newTask='';saveTasks();toast('タスク候補を追加しました')}render()};
-      document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>{state.draft=draftWithSuggestedTask();state.draft.task=b.dataset.task;state.quickOpen=true;render()});
-    }
-    function schemaPreviewText(){return 'users / logs / calendar_events の3テーブル + user_idで本人だけ参照。詳しくは「DBスキーマをコピー」。'}
-    function supabaseSchemaText(){return [`-- NamiLog Supabase schema draft`,`create table public.profiles (`,`  id uuid primary key references auth.users(id) on delete cascade,`,`  name text,`,`  email text,`,`  team text,`,`  created_at timestamptz default now()` ,`);`,``, `create table public.logs (`,`  id uuid primary key default gen_random_uuid(),`,`  user_id uuid not null references auth.users(id) on delete cascade,`,`  created_at timestamptz not null default now(),`,`  emotion_id text,`,`  emotion_label text,`,`  emotion_score numeric,`,`  progress_id text,`,`  progress_label text,`,`  progress_score numeric,`,`  task text,`,`  memo text,`,`  next_action text,`,`  source text default 'quick_check'`,`);`,``, `create table public.calendar_events (`,`  id uuid primary key default gen_random_uuid(),`,`  user_id uuid not null references auth.users(id) on delete cascade,`,`  start_at timestamptz,`,`  end_at timestamptz,`,`  title text,`,`  source text default 'google_calendar',`,`  created_at timestamptz default now()`,`);`].join('\n')}
-    function rlsPolicyText(){return [`-- NamiLog RLS policy draft`,`alter table public.profiles enable row level security;`,`alter table public.logs enable row level security;`,`alter table public.calendar_events enable row level security;`,``, `create policy "profiles are own data" on public.profiles`,`for all using (auth.uid() = id) with check (auth.uid() = id);`,``, `create policy "logs are own data" on public.logs`,`for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`,``, `create policy "calendar events are own data" on public.calendar_events`,`for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`].join('\n')}
-    function accountPlanText(){return [`# NamiLog 個別アカウント設計メモ`,'',`## 目的`,'- 全社利用時も、各社員が自分だけの感情・進捗・タスクログを作り、本人だけが参照できる状態にする。','- 上長共有は自動ではなく、本人が日報/週報/面談のたねとして任意にコピーして使う。','',`## 最小データ`,'- user: id, name, email, team','- log: user_id, created_at, emotion, emotion_score, progress, progress_score, task, memo, next_action','- calendar_event: user_id, start_at, end_at, title, source','',`## 次の実装候補`,'1. Googleログイン','2. Supabase等のDBにユーザー別保存','3. Row Level Securityで本人のログだけ読めるようにする','4. Googleカレンダー同期をユーザー単位で許可制にする'].join('\n')}
-    function saveQuick(){
-      const task=document.getElementById('draftTask')?.value||state.draft.task||''; const memo=document.getElementById('draftMemo')?.value||''; const next=document.getElementById('draftNext')?.value||'';
-      if(!state.draft.emotion&&!state.draft.progress){toast('感情か進み具合をひとつ選んでね');return}
-      const emotion=state.draft.emotion||{id:'unknown',emoji:'〜',label:'未選択',score:0}; const progress=state.draft.progress;
-      const log=normalizeLog({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,createdAt:new Date().toISOString(),emotion,progress,task,memo,nextAction:next,profileName:state.profile.name,profileEmail:state.profile.email,team:state.profile.team,emotionScore:emotion.score??0,progressScore:progress?.score??0});
-      if(task&&!state.tasks.includes(task)){state.tasks.push(task);saveTasks()}
-      state.logs=[log,...state.logs]; state.quickOpen=false; state.draft=blankDraft(); saveLogs(); toast('今の波を記録しました');
-    }
-    async function copyText(text,msg){try{await navigator.clipboard.writeText(text); toast(msg)}catch{toast('コピーに失敗しました')}}
-    function exportJson(){const blob=new Blob([JSON.stringify({profile:state.profile,logs:state.logs},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`namilog-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)}
-    function importJsonFromFile(event){const file=event.target.files?.[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const data=JSON.parse(reader.result); const incoming=Array.isArray(data)?data:(data.logs||[]); if(!Array.isArray(incoming)){toast('logs配列が見つかりません');return} const normalized=incoming.map(normalizeLog); const merged=[...normalized,...state.logs]; const byId=new Map(); merged.forEach(l=>byId.set(l.id,l)); state.logs=Array.from(byId.values()).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)); if(data.profile){state.profile={...state.profile,...data.profile}; saveProfile()} saveLogs(); toast(`${normalized.length}件のログを取り込みました`); render()}catch(e){toast('JSON取り込みに失敗しました')}}; reader.readAsText(file); event.target.value=''}
-    function toast(msg){state.toast=msg;render();setTimeout(()=>{state.toast='';render()},2200)}
-    async function registerSW(){if(!('serviceWorker'in navigator))return null; try{const reg=await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=16`,{scope:BASE_PATH}); await reg.update(); state.registration=reg; return reg}catch(e){console.warn(e);return null}}
-    async function requestNotify(){if(!('Notification'in window)){state.permission='unsupported';toast('このブラウザは通知に対応していません');return} const p=await Notification.requestPermission(); state.permission=p; if(p==='granted'){state.settings.browserNotification=true;saveSettings();await showBrowserNotification('manual')} else toast('通知はまだ許可されていません'); render()}
-    async function showBrowserNotification(reason='manual'){if(!('Notification'in window)){toast('通知に対応していません');return} if(Notification.permission!=='granted'){toast('先に通知オンを押してください');return} const reg=state.registration||await registerSW(); const url=new URL(`${BASE_PATH}?quickCheck=1`,location.origin).href; const opts={body:reason==='scheduled'?'そろそろ今の気分と進み具合を残しておこう。':'クリックすると、今の波を残せます。',tag:'namilog-wave-v16',renotify:true,data:{url},actions:[{action:'open',title:'今の波を残す'},{action:'later',title:'あとで'}]}; try{if(reg&&reg.showNotification) await reg.showNotification('NamiLog そっと声かけ',opts); else new Notification('NamiLog そっと声かけ',opts); if(reason==='manual')toast('テスト通知を出しました')}catch(e){try{new Notification('NamiLog そっと声かけ',opts);toast('テスト通知を出しました')}catch{toast('通知を出せませんでした')}}}
-    let intervalId=null; function setupInterval(){if(intervalId)clearInterval(intervalId); if(state.settings.browserNotification&&state.permission==='granted'){intervalId=setInterval(()=>showBrowserNotification('scheduled'),state.settings.intervalMinutes*60*1000)}}
-    if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){state.draft=draftWithSuggestedTask();state.quickOpen=true;render()}})}
-    const params=new URLSearchParams(location.search); if(params.get('quickCheck')==='1'){state.draft=draftWithSuggestedTask();state.quickOpen=true; history.replaceState({},'',location.pathname)}
-    registerSW().then(()=>setupInterval()); render();
-  </script>
+<div id="app"></div>
+<script>
+const VERSION='v17-oneonone-story';
+const LOG_KEY='namilog.quick-check.logs.v1';
+const SETTINGS_KEY='namilog.quick-check.settings.v1';
+const PROFILE_KEY='namilog.profile.v1';
+const TASK_KEY='namilog.tasks.v1';
+const emotions=[{id:'fun',emoji:'😄',label:'楽しい',score:2},{id:'good',emoji:'🙂',label:'いい感じ',score:1.5},{id:'calm',emoji:'😌',label:'穏やか',score:1},{id:'tired',emoji:'🥺',label:'少ししんどい',score:-1.5},{id:'cloudy',emoji:'☁️',label:'モヤモヤ',score:-1}];
+const progresses=[{id:'great',emoji:'🚀',label:'進んだ',score:2},{id:'little',emoji:'🌱',label:'少し進んだ',score:1},{id:'scattered',emoji:'🌀',label:'散らかった',score:-1},{id:'stuck',emoji:'🧱',label:'詰まった',score:-2},{id:'pause',emoji:'⏸',label:'止まってる',score:-1.5}];
+let state={logs:load(LOG_KEY,[]),settings:load(SETTINGS_KEY,{intervalMinutes:120,browserNotification:false,autoPopup:false}),profile:load(PROFILE_KEY,{name:'',email:'',team:''}),tasks:load(TASK_KEY,['日報','定例','商談準備','資料作成','1on1','AI合宿']),quick:true,draft:{emotion:null,progress:null,task:'',memo:'',nextAction:''},view:'week',toast:'',modal:null,permission:getPerm(),sw:null};
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function normalizeLog(log){const e=log.emotion||emotions.find(x=>x.id===log.emotionId)||null;const p=log.progress||progresses.find(x=>x.id===log.progressId)||null;return{...log,emotion:e,progress:p,emotionScore:Number.isFinite(log.emotionScore)?log.emotionScore:(e?.score??0),progressScore:Number.isFinite(log.progressScore)?log.progressScore:(p?.score??0),task:log.task||log.taskTitle||'',memo:log.memo||'',nextAction:log.nextAction||''}}
+state.logs=state.logs.map(normalizeLog);save(LOG_KEY,state.logs);
+function getPerm(){return !('Notification'in window)?'unsupported':Notification.permission}
+function fmtTime(s){return new Date(s).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}
+function fmtDate(s){return new Date(s).toLocaleDateString('ja-JP',{month:'2-digit',day:'2-digit',weekday:'short'})}
+function dayKey(d){return new Date(d).toLocaleDateString('ja-JP')}
+function daysAgo(n){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-n);return d}
+function inDays(log,n){return new Date(log.createdAt)>=daysAgo(n-1)}
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function scoreLabel(x){return x>1?'高め':x>0?'やや高め':x< -1?'低め':x<0?'やや低め':'ふつう'}
+function avg(arr,fn){const xs=arr.map(fn).filter(Number.isFinite);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:0}
+function todayLogs(){const t=dayKey(new Date());return state.logs.filter(l=>dayKey(l.createdAt)===t)}
+function periodLogs(){const n=state.view==='day'?1:state.view==='month'?30:7;return state.logs.filter(l=>inDays(l,n))}
+function words(logs){const stop='これ それ あれ ため こと 今日 明日 する した です ます あり なし'.split(' ');const map={};logs.forEach(l=>(l.memo+' '+l.task+' '+l.nextAction).split(/[^\p{L}\p{N}一-龥ぁ-んァ-ヶー]+/u).filter(w=>w.length>1&&!stop.includes(w)).forEach(w=>map[w]=(map[w]||0)+1));return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8)}
+function weather(logs){const s=avg(logs,l=>(l.emotionScore+l.progressScore)/2);if(!logs.length)return{icon:'🌙',text:'まだ観測前'};if(s>=1.2)return{icon:'☀️',text:'晴れ'};if(s>=.3)return{icon:'🌤️',text:'晴れときどき雲'};if(s>=-.5)return{icon:'☁️',text:'くもり'};return{icon:'🌧️',text:'雨まじり'}}
+function taskStats(logs){const m={};logs.forEach(l=>{const k=l.task||'未分類';m[k]=m[k]||{n:0,e:0,p:0};m[k].n++;m[k].e+=l.emotionScore;m[k].p+=l.progressScore});return Object.entries(m).map(([task,v])=>({task,n:v.n,e:v.e/v.n,p:v.p/v.n,total:(v.e+v.p)/(2*v.n)})).sort((a,b)=>a.total-b.total)}
+function trendData(){const n=state.view==='day'?1:state.view==='month'?30:7;return Array.from({length:n},(_,i)=>{const d=daysAgo(n-1-i);const key=dayKey(d);const ls=state.logs.filter(l=>dayKey(l.createdAt)===key);return{label:state.view==='day'?fmtTime(new Date()):`${d.getMonth()+1}/${d.getDate()}`,score:ls.length?avg(ls,l=>(l.emotionScore+l.progressScore)/2):0,count:ls.length}})}
+function insightCards(logs){const w=weather(logs);const ts=taskStats(logs);const low=ts[0],high=ts[ts.length-1];const topWords=words(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ少なめ';const neg=logs.filter(l=>(l.emotionScore+l.progressScore)/2<-.7);return[
+ {t:'こころ天気',b:`${w.icon} ${w.text}`,d:`直近の波は${scoreLabel(avg(logs,l=>(l.emotionScore+l.progressScore)/2))}。日報では「なぜその波だったか」を一言添えるとよさそう。`},
+ {t:'上がりやすい要素',b:high?`${high.task}：${scoreLabel(high.total)}`:'まだ観測中',d:high?`このタスクでは波が上がりやすい傾向。得意・回復・集中のヒントとして面談で話せます。`:'もう少しログが増えると見えてきます。'},
+ {t:'相談してよさそうな要素',b:low?`${low.task}：${scoreLabel(low.total)}`:'まだ観測中',d:low?`このタスクでは波が下がりやすい傾向。業務量・期待値・進め方の相談テーマにできます。`:'もう少しログが増えると見えてきます。'},
+ {t:'よく出た言葉',b:topWords,d:'この週に頭を占めていたテーマ。週報の見出しや1on1の話題にできます。'},
+ {t:'1on1で話せそうなこと',b:neg.length?`${neg.length}件の沈みログ`:'大きな沈みは少なめ',d:neg.length?'詰まりが続いた時間帯・タスク名・メモを見て、支援してほしいことを一つ選ぶと良さそう。':'良かった要因や再現したい進め方を話すと、次週の作戦にできます。'}
+]}
+function dailyText(){const logs=todayLogs().slice().reverse();const w=weather(logs);return [`# NamiLog 日報のたね ${new Date().toLocaleDateString('ja-JP')}`,'',`## 今日のこころ天気：${w.icon} ${w.text}`,'','## 今日の波',...(logs.length?logs.map(l=>`- ${fmtTime(l.createdAt)} ${l.emotion?.emoji||''} ${l.emotion?.label||''} / ${l.progress?.emoji||''} ${l.progress?.label||''}${l.task?`｜${l.task}`:''}${l.memo?`\n  - メモ：${l.memo}`:''}${l.nextAction?`\n  - 次：${l.nextAction}`:''}`):['- まだログがありません']),'','## 日報に書けそうなこと','- 進んだこと：','- 詰まったこと：','- 気づいた自分の状態：','- 明日の一手：'].join('\n')}
+function weeklyText(){const logs=state.logs.filter(l=>inDays(l,7)).slice().reverse();const cards=insightCards(logs);return [`# NamiLog 週報・1on1のたね`,'',...cards.map(c=>`## ${c.t}\n${c.b}\n${c.d}`),'','## ログ抜粋',...(logs.length?logs.map(l=>`- ${fmtDate(l.createdAt)} ${fmtTime(l.createdAt)} ${l.emotion?.emoji||''}${l.emotion?.label||''} / ${l.progress?.emoji||''}${l.progress?.label||''} ${l.task?`｜${l.task}`:''}${l.memo?`｜${l.memo}`:''}`):['- まだログがありません']),'','## 上長に相談したいこと','- ','','## 来週ためしたいこと','- '].join('\n')}
+function render(){save(LOG_KEY,state.logs);save(SETTINGS_KEY,state.settings);save(PROFILE_KEY,state.profile);save(TASK_KEY,state.tasks);const logs=periodLogs();const tlogs=todayLogs();const w=weather(logs);const cards=insightCards(logs);document.getElementById('app').innerHTML=`<div class="app">
+<header class="hero"><div><span class="badge">🌊 NamiLog ${VERSION}</span><h1>感情の波を、日報と1on1の言葉に変える。</h1><p class="lead">通知に数秒こたえるだけ。感情・進捗・タスクを自分だけのログにして、日/週/月の波と面談のたねまで育てます。</p></div><div class="heroActions"><button class="btn primary" data-act="openQuick">今の波を残す</button><button class="btn soft" data-act="copyDaily">日報コピー</button><button class="btn soft" data-act="copyWeekly">週報/1on1コピー</button></div></header>
+<main class="grid"><section class="panel"><div class="sectionHead"><div><p class="eyebrow">Motivation Wave</p><h2><span class="weather">${w.icon}</span>${w.text}</h2></div><span class="count">${logs.length}件</span></div>${tabs()}${chart()}<div class="kpi"><div><b>${avg(logs,l=>l.emotionScore).toFixed(1)}</b><span class="muted">感情平均</span></div><div><b>${avg(logs,l=>l.progressScore).toFixed(1)}</b><span class="muted">進捗平均</span></div><div><b>${words(logs).length}</b><span class="muted">よく出た言葉</span></div></div><div class="sectionHead"><div><p class="eyebrow">Today</p><h2>今日のログ</h2></div><span class="count">${tlogs.length}件</span></div>${logList(tlogs)}</section>
+<aside class="panel"><div class="sectionHead"><div><p class="eyebrow">Insights</p><h2>ふりかえりカード</h2></div></div><div class="insights">${cards.map(c=>`<div class="insight"><b>${esc(c.t)}｜${esc(c.b)}</b><span class="muted">${esc(c.d)}</span></div>`).join('')}</div><div class="sideActions"><button class="btn primary tiny" data-act="copyInsight">分析コピー</button><button class="btn soft tiny" data-act="copyOneonone">1on1準備コピー</button></div>${rightPanels()}</aside></main>${state.quick?quickHtml():''}${state.modal?modalHtml():''}${state.toast?`<div class="toast">${esc(state.toast)}</div>`:''}</div>`;bind()}
+function tabs(){return`<div class="tabs">${[['day','日'],['week','週'],['month','月']].map(([id,l])=>`<button class="tab ${state.view===id?'on':''}" data-view="${id}">${l}</button>`).join('')}</div>`}
+function chart(){const data=trendData();const max=2;return`<div class="chart"><div class="bars">${data.map(d=>{const h=Math.max(6,Math.abs(d.score)/max*105);return`<div class="barWrap"><div class="bar ${d.score<0?'neg':''}" style="height:${h}px" title="${d.label}: ${d.score.toFixed(1)}"></div><div class="barLabel">${d.label}</div></div>`}).join('')}</div></div>`}
+function logList(logs){if(!logs.length)return`<div class="empty"><div style="font-size:44px">🌱</div><b>まだ今日の波はありません</b><p>右下のQuick Checkから、今の状態をそっと残してみましょう。</p></div>`;return`<div class="logs">${logs.map(l=>`<article class="log"><div class="logTop"><span>${fmtTime(l.createdAt)}</span><button class="btn soft tiny" data-del="${l.id}">削除</button></div><div class="logMain"><span class="big">${l.emotion?.emoji||'🌊'}</span><div><h3>${esc(l.emotion?.label||'未選択')} / ${l.progress?.emoji||''} ${esc(l.progress?.label||'進捗未選択')}</h3>${l.task?`<p>タスク：${esc(l.task)}</p>`:''}${l.memo?`<p>メモ：${esc(l.memo)}</p>`:''}${l.nextAction?`<p>次：${esc(l.nextAction)}</p>`:''}</div></div></article>`).join('')}</div>`}
+function rightPanels(){return`<div class="box"><h3>マイログ設定</h3><label class="setting"><span>名前</span><input data-prof="name" value="${esc(state.profile.name)}" placeholder="自分だけの表示名"></label><label class="setting"><span>メール</span><input data-prof="email" type="email" value="${esc(state.profile.email)}" placeholder="name@example.com"></label><label class="setting"><span>チーム</span><input data-prof="team" value="${esc(state.profile.team)}" placeholder="所属チーム"></label></div>
+<div class="box"><h3>やさしいリマインド</h3><div class="row"><button class="btn primary tiny" data-act="requestNotif">通知を許可</button><button class="btn soft tiny" data-act="testNotif">今ためす</button><span class="count">${state.permission==='granted'?'許可済み':state.permission==='denied'?'ブロック中':state.permission==='unsupported'?'非対応':'未許可'}</span></div><label class="setting"><span>定期的に声をかけてもらう</span><input type="checkbox" data-set="browserNotification" ${state.settings.browserNotification?'checked':''}></label><label class="setting"><span>間隔</span><select data-set="intervalMinutes"><option value="30" ${state.settings.intervalMinutes==30?'selected':''}>30分</option><option value="60" ${state.settings.intervalMinutes==60?'selected':''}>1時間</option><option value="120" ${state.settings.intervalMinutes==120?'selected':''}>2時間</option></select></label></div>
+<div class="box"><h3>タスク候補</h3><div class="inputLine"><input id="taskAdd" placeholder="タスクを追加"><button class="btn soft tiny" data-act="addTask">追加</button></div><div class="taskChips">${state.tasks.map((x,i)=>`<button class="chip" data-remove-task="${i}">${esc(x)} ×</button>`).join('')}</div></div>
+<div class="box"><h3>次の本番化メモ</h3><p class="muted">Googleログイン + Supabase RLS + AI APIで、全社利用の個別ログ化へ進める想定。</p><button class="btn soft tiny" data-act="copySpec">v17要件コピー</button></div>`}
+function quickHtml(){return`<div class="quick"><button class="close" data-act="closeQuick">×</button><p class="eyebrow">Quick Check</p><h2>今の波を残そう</h2><p>感情・進み具合・タスクを選ぶと、日報と1on1のたねになります。</p><div class="choiceTitle">感情<span>いまの気持ち</span></div><div class="choices">${emotions.map(e=>`<button class="choice ${state.draft.emotion?.id===e.id?'selected':''}" data-emotion="${e.id}"><span class="emoji">${e.emoji}</span><b>${e.label}</b></button>`).join('')}</div><div class="choiceTitle">進捗<span>仕事の進み具合</span></div><div class="choices">${progresses.map(p=>`<button class="choice ${state.draft.progress?.id===p.id?'selected':''}" data-progress="${p.id}"><span class="emoji">${p.emoji}</span><b>${p.label}</b></button>`).join('')}</div><div class="inputLine"><select data-draft="task"><option value="">タスクを選ぶ</option>${state.tasks.map(t=>`<option ${state.draft.task===t?'selected':''}>${esc(t)}</option>`).join('')}</select><input data-draft="memo" value="${esc(state.draft.memo)}" placeholder="30秒メモ：何が起きていた？"><input data-draft="nextAction" value="${esc(state.draft.nextAction)}" placeholder="次にやること"></div><div class="quickFooter"><button class="btn primary" data-act="saveLog">この波を残す</button><button class="btn soft" data-act="openDeep">深掘り</button></div></div>`}
+function modalHtml(){return`<div class="modal"><div class="modalCard"><button class="close" data-act="closeModal">×</button><p class="eyebrow">Deep Reflection</p><h2>面談で話せる形に整える</h2><div class="inputLine"><textarea data-draft="memo" placeholder="今日の背景、感情の理由、気になっていること">${esc(state.draft.memo)}</textarea><textarea data-draft="nextAction" placeholder="相談したいこと、明日試したいこと">${esc(state.draft.nextAction)}</textarea></div><div class="sideActions"><button class="btn primary" data-act="saveLog">この波を残す</button><button class="btn soft" data-act="closeModal">閉じる</button></div></div></div>`}
+function bind(){document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{state.view=b.dataset.view;render()});document.querySelectorAll('[data-emotion]').forEach(b=>b.onclick=()=>{state.draft.emotion=emotions.find(e=>e.id===b.dataset.emotion);render()});document.querySelectorAll('[data-progress]').forEach(b=>b.onclick=()=>{state.draft.progress=progresses.find(p=>p.id===b.dataset.progress);render()});document.querySelectorAll('[data-draft]').forEach(i=>i.oninput=()=>{state.draft[i.dataset.draft]=i.value});document.querySelectorAll('[data-prof]').forEach(i=>i.oninput=()=>{state.profile[i.dataset.prof]=i.value;save(PROFILE_KEY,state.profile)});document.querySelectorAll('[data-set]').forEach(i=>i.onchange=()=>{const k=i.dataset.set;state.settings[k]=i.type==='checkbox'?i.checked:Number(i.value);render()});document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{state.logs=state.logs.filter(l=>l.id!==b.dataset.del);toast('削除しました')});document.querySelectorAll('[data-remove-task]').forEach(b=>b.onclick=()=>{state.tasks.splice(Number(b.dataset.removeTask),1);render()})}
+function resetDraft(){state.draft={emotion:null,progress:null,task:'',memo:'',nextAction:''}}
+function act(a){if(a==='openQuick'){resetDraft();state.quick=true;render()} if(a==='closeQuick'){state.quick=false;render()} if(a==='openDeep'){state.modal='deep';state.quick=false;render()} if(a==='closeModal'){state.modal=null;render()} if(a==='saveLog')saveLog(); if(a==='copyDaily')copy(dailyText(),'日報をコピーしました'); if(a==='copyWeekly'||a==='copyOneonone')copy(weeklyText(),'週報/1on1をコピーしました'); if(a==='copyInsight')copy(insightCards(periodLogs()).map(c=>`${c.t}: ${c.b}\n${c.d}`).join('\n\n'),'分析をコピーしました'); if(a==='copySpec')copy(specText(),'要件メモをコピーしました'); if(a==='requestNotif')requestNotif(); if(a==='testNotif')showNotif('manual'); if(a==='addTask'){const v=document.getElementById('taskAdd')?.value.trim();if(v&&!state.tasks.includes(v))state.tasks.push(v);render()}}
+function saveLog(){const e=state.draft.emotion,p=state.draft.progress;if(!e&&!p&&!state.draft.memo.trim()){toast('感情か進捗をひとつ選んでね');return}state.logs.unshift({id:Date.now()+'-'+Math.random().toString(36).slice(2),createdAt:new Date().toISOString(),emotion:e,progress:p,emotionScore:e?.score??0,progressScore:p?.score??0,task:state.draft.task,memo:state.draft.memo.trim(),nextAction:state.draft.nextAction.trim(),profile:{...state.profile},version:VERSION});resetDraft();state.quick=false;state.modal=null;toast('波を記録しました');render()}
+function copy(t,msg){navigator.clipboard?.writeText(t).then(()=>toast(msg)).catch(()=>toast('コピーに失敗しました'))}
+function toast(m){state.toast=m;render();setTimeout(()=>{state.toast='';render()},1800)}
+async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=17');navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
+async function requestNotif(){if(!('Notification'in window)){toast('通知非対応です');return}const p=await Notification.requestPermission();state.permission=p;if(p==='granted'){state.settings.browserNotification=true;await showNotif('manual');toast('通知を許可しました')}else toast('通知は未許可です');render()}
+async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波を残そう',{body:reason==='scheduled'?'感情と進み具合を、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v17',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波を残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
+function startTimers(){setInterval(()=>{if(state.settings.browserNotification)showNotif('scheduled');if(state.settings.autoPopup){resetDraft();state.quick=true;render()}},60000);}
+function specText(){return`NamiLog v17 要件\n- 入力: 感情 / 進捗 / タスク / 30秒メモ / 次アクション\n- 出力: 日報のたね / 週報のたね / 1on1準備 / モチベーショングラフ\n- 分析: こころ天気、よく出た言葉、タスク別の波、相談テーマ\n- 本番化: Googleログイン、Supabase RLS、Google Calendar、AI API接続\n- 原則: 個人ログは本人だけ閲覧。共有は本人が必要な内容だけコピー。`}
+const urlp=new URLSearchParams(location.search);if(urlp.get('quickCheck')==='1'){state.quick=true;history.replaceState({},'',location.pathname)}setupSW();startTimers();render();
+</script>
 </body>
 </html>

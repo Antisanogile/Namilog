@@ -1,19 +1,18 @@
-const VERSION = 'namilog-sw-v16';
-self.addEventListener('install', (event) => { self.skipWaiting(); });
-self.addEventListener('activate', (event) => { event.waitUntil(self.clients.claim()); });
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('install', event => self.skipWaiting());
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'later') return;
-  const url = event.notification.data?.url || '/Namilog/?quickCheck=1';
+  const url = (event.notification.data && event.notification.data.url) || '/Namilog/?quickCheck=1';
   event.waitUntil((async () => {
     const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of allClients) {
       if (client.url.includes('/Namilog/') && 'focus' in client) {
-        await client.focus();
-        client.postMessage({ type: 'OPEN_QUICK_CHECK', version: VERSION });
+        client.focus();
+        client.postMessage({ type: 'OPEN_QUICK_CHECK' });
         return;
       }
     }
-    if (clients.openWindow) await clients.openWindow(url);
+    if (clients.openWindow) return clients.openWindow(url);
   })());
 });
