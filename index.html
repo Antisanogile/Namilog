@@ -46,6 +46,11 @@
     .profilePill{margin-left:8px; color:#7f5d70; background:rgba(255,255,255,.62)}
     .profileBox{border-color:rgba(156,164,255,.28); background:linear-gradient(180deg,rgba(255,250,253,.88),rgba(255,255,255,.58))}
 
+    .googleOpsBox{border-color:rgba(156,164,255,.36); background:linear-gradient(180deg,rgba(247,246,255,.92),rgba(255,255,255,.62))}
+    .opsChecklist{display:grid; gap:10px; margin-top:12px}
+    .opsItem{display:grid; grid-template-columns:auto 1fr; gap:10px; padding:11px 12px; border:1px solid rgba(156,164,255,.24); border-radius:16px; background:rgba(255,255,255,.58); color:#4f5f78; line-height:1.55}
+    .opsItem b{color:#45506e}
+
     .goalBox{border-color:rgba(255,125,105,.34); background:linear-gradient(180deg,rgba(255,247,244,.92),rgba(255,255,255,.62))}
     .goalSteps{display:grid; gap:9px; margin-top:12px}
     .goalStep{display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; padding:11px 12px; border:1px solid rgba(255,139,112,.22); border-radius:16px; background:rgba(255,255,255,.58); color:#4f5f78; line-height:1.5}
@@ -81,7 +86,7 @@
     const PROFILE_KEY='namilog.profile.v1';
     const GOOGLE_KEY='namilog.googleCalendar.v1';
     const BASE_PATH='/Namilog/';
-    const VERSION='v13 product-goal-map';
+    const VERSION='v14 calendar-ops-check';
     const emotions=[
       {id:'fun',emoji:'😄',label:'楽しい',score:2},{id:'good',emoji:'🙂',label:'いい感じ',score:2},{id:'calm',emoji:'😌',label:'穏やか',score:1},{id:'tired',emoji:'🥺',label:'少ししんどい',score:-2},{id:'cloudy',emoji:'☁️',label:'モヤモヤ',score:-1}
     ];
@@ -184,6 +189,8 @@
             </div>
           </section>
           <aside class="panel"><div class="sectionHead"><div><p class="eyebrow">DAILY REFLECTION</p><h2>日報のたね</h2></div></div><textarea class="dailyTextarea" readonly>${escape(dailyText())}</textarea><div class="sideActions"><button class="primary small" data-action="copyDaily">コピー</button><button class="ghost small" data-action="copyWeekly">週報コピー</button><button class="ghost small" data-action="exportJson">JSON出力</button><button class="danger small" data-action="clearAll">全削除</button></div>
+            ${googleCalendarHtml()}
+            ${googleOpsHtml()}
             ${profileHtml()}
             ${productionPlanHtml()}
             ${aiInsightHtml()}
@@ -214,6 +221,24 @@
       return `<div class="settingsBox googleBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>Googleカレンダー連携</h3><p class="hint">Google OAuth Client IDを入れると、本人の今日の予定を取得してタスク候補にできます。</p></div><span class="statusPill ${connected?'granted':''}">${connected?'接続準備OK':'未接続'}</span></div><label class="settingRow" style="align-items:flex-start"><span>OAuth Client ID</span><input id="googleClientId" style="max-width:100%;width:100%" placeholder="xxxxx.apps.googleusercontent.com" value="${escape(state.google.clientId||'')}"></label><div class="sideActions"><button class="primary small" data-action="saveGoogleClient">Client ID保存</button><button class="primary small" data-action="connectGoogleCalendar">Google予定を取得</button><button class="ghost small" data-action="copyGoogleSetup">設定手順をコピー</button></div><p class="hint">${escape(last)}${state.google.lastError?`<br>前回エラー：${escape(state.google.lastError)}`:''}</p><p class="softNote">まずは今日の予定タイトルと時刻だけを取得します。予定内容の本文は保存しません。</p></div>`
     }
     function googleSetupText(){return [`# NamiLog Googleカレンダー連携セットアップ`,'','## Google Cloudで行うこと','1. Google Cloud Consoleでプロジェクトを作る','2. Google Calendar APIを有効化する','3. OAuth同意画面を設定する','4. OAuth Client IDを作る。種類は「ウェブアプリ」','5. 承認済みのJavaScript生成元に https://antisanogile.github.io を追加する','6. 作成された Client ID をNamiLogの「OAuth Client ID」に貼り付ける','','## NamiLog側','- 「Client ID保存」→「Google予定を取得」','- 読み取りスコープは calendar.readonly','- 取得した予定はQuick Checkのタスク候補に入る','','## 本番化メモ','- 全社展開では、各自がGoogleログインして本人の予定だけを取得する。','- DB保存する場合も、予定本文ではなく title/start/end/source 程度に絞る。'].join('\n')}
+    function googleOpsHtml(){
+      const hasClient=!!(state.google.clientId||'').trim();
+      const hasEvents=state.calendarItems.length>0;
+      const last=state.google.lastSyncAt?`最終取得：${new Date(state.google.lastSyncAt).toLocaleString('ja-JP')}`:'まだGoogle予定の取得履歴はありません';
+      const checks=[
+        [hasClient?'✅':'⬜','OAuth Client ID','Google Cloudで作ったClient IDが保存されているか'],
+        [hasEvents?'✅':'⬜','予定候補','今日の予定がQuick Checkのタスク候補に出ているか'],
+        ['✅','保存方針','予定本文は保存せず、タイトル・時刻だけを扱う設計'],
+        ['🟡','実運用テスト','朝/昼/夕方に通知から記録し、予定別の波が見えるか確認']
+      ];
+      return `<div class="settingsBox googleOpsBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>Google連携 実運用チェック</h3><p class="hint">OAuth設定後に「予定取得 → Quick Checkで予定選択 → 波グラフ反映」までを確認するためのパネルです。</p></div><span class="statusPill ${hasClient&&hasEvents?'granted':''}">${hasClient&&hasEvents?'確認OK':'確認中'}</span></div><div class="opsChecklist">${checks.map(c=>`<div class="opsItem"><span>${c[0]}</span><span><b>${c[1]}</b><br>${c[2]}</span></div>`).join('')}</div><p class="hint">${escape(last)}${state.google.lastError?`<br>前回エラー：${escape(state.google.lastError)}`:''}</p><div class="sideActions"><button class="primary small" data-action="calendarSelfCheck">連携セルフチェック</button><button class="ghost small" data-action="copyCalendarOps">検証メモをコピー</button><button class="ghost small" data-action="copyCalendarPrivacy">カレンダー保存方針をコピー</button></div><p class="softNote">本番想定では各自が自分のGoogle予定だけを取得します。上長や管理者が個人ログを直接見る設計にはしません。</p></div>`
+    }
+    function calendarOpsMemoText(){
+      const items=state.calendarItems.slice(0,8).map(i=>`- ${i.time||'時刻なし'} ${i.end?`〜${i.end} `:''}${i.title}`).join('\n')||'- まだ予定候補なし';
+      return [`# NamiLog Googleカレンダー連携 検証メモ`,``,`## チェック項目`,`- OAuth Client IDを保存できたか`,`- Google予定を取得できたか`,`- 取得した予定がQuick Checkのタスク候補に出るか`,`- 予定を選んで波を記録できるか`,`- 日報/週報/面談のたねに予定名が反映されるか`,``,`## 現在の状態`,`- Client ID: ${(state.google.clientId||'').trim()?'保存済み':'未保存'}`,`- 予定候補数: ${state.calendarItems.length}件`,`- 最終取得: ${state.google.lastSyncAt||'未取得'}`,`- 前回エラー: ${state.google.lastError||'なし'}`,``,`## 予定候補`,items,``,`## 次に見ること`,`- 波が下がる予定/上がる予定が見えるか`,`- 1on1で話す材料になる粒度か`,`- 予定タイトルだけで十分か、カテゴリも必要か`].join('\n')
+    }
+    function calendarPrivacyText(){return [`# NamiLog カレンダー保存方針`,``,`## 基本方針`,`- 各ユーザー本人の許可で本人のGoogleカレンダーだけを読み取る。`,`- 保存するのは予定タイトル・開始時刻・終了時刻・source程度に絞る。`,`- 予定の本文、参加者、Meet URL、添付ファイルは原則保存しない。`,`- 感情ログは本人だけが参照する個人ログとして扱う。`,`- 日報/週報/面談への共有は、本人がコピーして必要な範囲だけ行う。`,``,`## 目的`,`予定と感情/進捗の関係を見て、「この予定の前後で波が下がる」「この仕事では前進感がある」といった振り返りのきっかけを作る。`].join('\n')}
+
     function saveGoogleClient(){state.google.clientId=(document.getElementById('googleClientId')?.value||'').trim(); state.google.connected=!!state.google.clientId; state.google.lastError=''; saveGoogleSettings(); toast(state.google.clientId?'Client IDを保存しました':'Client IDを空にしました'); render()}
     function loadGoogleIdentityScript(){return new Promise((resolve,reject)=>{if(window.google?.accounts?.oauth2){resolve();return} const existing=document.querySelector('script[data-google-identity]'); if(existing){existing.addEventListener('load',resolve,{once:true}); existing.addEventListener('error',reject,{once:true}); return} const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true; s.defer=true; s.dataset.googleIdentity='1'; s.onload=resolve; s.onerror=reject; document.head.appendChild(s)})}
     async function connectGoogleCalendar(){
@@ -249,7 +274,7 @@
 
     function aiInsightHtml(){
       const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); const preview=aiPromptText('weekly').slice(0,520)+'...';
-      return `<div class="settingsBox aiBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AIふりかえりパック</h3><p class="hint">NamiLogのログを、ChatGPT/Geminiに渡して日報・週報・1on1の分析材料にできます。</p></div><span class="statusPill granted">v13</span></div><div class="signalList"><div class="signalItem"><b>今週の問い</b><br>${escape(aiQuestion(insights))}</div><div class="signalItem"><b>分析対象</b><br>直近7日 ${logs.length}件の波、タスク、メモ、次アクションを使います。</div></div><div class="aiActionGrid"><button class="primary small" data-action="copyAiWeekly">AI週次分析をコピー</button><button class="ghost small" data-action="copyAiOneOnOne">1on1分析をコピー</button><button class="ghost small" data-action="copyAiDaily">日報深掘りをコピー</button><button class="ghost small" data-action="copyAiSummary">分析サマリをコピー</button></div><textarea class="aiPromptPreview" readonly>${escape(preview)}</textarea><p class="softNote">本番ではAPI接続にできます。今はまず、本人がコピーしてAIに渡す安全な入口にしています。</p></div>`
+      return `<div class="settingsBox aiBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AIふりかえりパック</h3><p class="hint">NamiLogのログを、ChatGPT/Geminiに渡して日報・週報・1on1の分析材料にできます。</p></div><span class="statusPill granted">v14</span></div><div class="signalList"><div class="signalItem"><b>今週の問い</b><br>${escape(aiQuestion(insights))}</div><div class="signalItem"><b>分析対象</b><br>直近7日 ${logs.length}件の波、タスク、メモ、次アクションを使います。</div></div><div class="aiActionGrid"><button class="primary small" data-action="copyAiWeekly">AI週次分析をコピー</button><button class="ghost small" data-action="copyAiOneOnOne">1on1分析をコピー</button><button class="ghost small" data-action="copyAiDaily">日報深掘りをコピー</button><button class="ghost small" data-action="copyAiSummary">分析サマリをコピー</button></div><textarea class="aiPromptPreview" readonly>${escape(preview)}</textarea><p class="softNote">本番ではAPI接続にできます。今はまず、本人がコピーしてAIに渡す安全な入口にしています。</p></div>`
     }
     function aiQuestion(insights){
       if(insights.score < -.4) return '今週、波が下がった場面にはどんなタスク・予定・言葉が重なっていたか？';
@@ -274,11 +299,11 @@
         ['✅','モチベーションの波','日/週/月の波形とこころ天気を見る','済'],
         ['✅','日報・週報のたね','コピーして日報/週報に使える形にする','済'],
         ['✅','AIふりかえり','ChatGPT/Geminiへ渡す分析プロンプトを作る','済'],
-        ['🟡','Google予定の実連携','OAuth設定後に今日の予定を自動取得する','次'],
+        ['✅','Google予定の実連携チェック','予定取得とQuick Check候補化の検証導線を追加','済'],
         ['🟡','個別アカウント本番化','Googleログイン + DB + RLSで本人だけ参照','次'],
         ['🟡','AI自動分析','API接続して週次インサイトをアプリ内生成','次']
       ];
-      return `<div class="settingsBox goalBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>完成形への地図</h3><p class="hint">muute的な自己理解を、業務ログ・日報・週報・1on1に変換するための要件マップです。</p></div><span class="statusPill granted">v13</span></div><div class="goalSteps">${steps.map(s=>`<div class="goalStep"><span>${s[0]}</span><span><b>${s[1]}</b><br>${s[2]}</span><small>${s[3]}</small></div>`).join('')}</div><div class="sideActions"><button class="primary small" data-action="copyProductBrief">プロダクト要件をコピー</button><button class="ghost small" data-action="copyBuildPlan">残タスクをコピー</button></div><p class="softNote">今日の試作は「使えるMVP」まで来ています。ここから先は、個人データ保護と外部API接続の本番化が中心です。</p></div>`
+      return `<div class="settingsBox goalBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>完成形への地図</h3><p class="hint">muute的な自己理解を、業務ログ・日報・週報・1on1に変換するための要件マップです。</p></div><span class="statusPill granted">v14</span></div><div class="goalSteps">${steps.map(s=>`<div class="goalStep"><span>${s[0]}</span><span><b>${s[1]}</b><br>${s[2]}</span><small>${s[3]}</small></div>`).join('')}</div><div class="sideActions"><button class="primary small" data-action="copyProductBrief">プロダクト要件をコピー</button><button class="ghost small" data-action="copyBuildPlan">残タスクをコピー</button></div><p class="softNote">今日の試作は「使えるMVP」まで来ています。ここから先は、個人データ保護と外部API接続の本番化が中心です。</p></div>`
     }
     function productBriefText(){return [`# NamiLog プロダクト要件メモ`,``,`## 目的`,`感情・進捗・タスクを短時間で記録し、日報・週報・上長面談の材料に変換する。muuteのように、自分の波や言葉の傾向を可視化して、自己理解と業務改善のきっかけを提供する。`,``,`## 入力`,`- 感情`,`- 進捗`,`- タスク/予定（Googleカレンダー連携）`,`- 30秒メモ`,`- 次アクション`,``,`## 出力`,`- 日報のたね`,`- 週報のたね`,`- モチベーショングラフ（日/週/月）`,`- こころ天気`,`- よく出た言葉`,`- 感情とタスクのつながり`,`- 上長面談のたね`,`- AI分析プロンプト`,``,`## データ方針`,`- 共有ログではなく、本人だけの個別ログ`,`- 上長共有は自動ではなく、本人が必要箇所をコピーして共有`,`- 本番ではGoogleログイン + DB + RLSで本人だけ参照可能にする`].join('\n')}
     function buildPlanText(){return [`# NamiLog 残タスク`,``,`## すぐ次にやる`,`1. Google OAuth設定を実際に通す`,`2. Googleカレンダー予定取得の動作検証`,`3. Quick Checkで予定候補が自然に選べるか確認`,``,`## MVP完成まで`,`4. Supabaseなどでログイン/DB保存`,`5. Row Level Securityで本人ログだけ参照`,`6. AI分析をAPI化するか、コピー運用にするか決める`,`7. PWA/デスクトップ通知の安定化`,``,`## 全社展開前`,`8. プライバシー文言・利用規約・ログ保存期間`,`9. 管理者が個人ログを直接見ない設計の確認`,`10. 小規模チームで運用テスト`].join('\n')}
@@ -316,6 +341,9 @@
       const saveG=document.querySelector('[data-action="saveGoogleClient"]'); if(saveG)saveG.onclick=saveGoogleClient;
       const connectG=document.querySelector('[data-action="connectGoogleCalendar"]'); if(connectG)connectG.onclick=connectGoogleCalendar;
       const copyG=document.querySelector('[data-action="copyGoogleSetup"]'); if(copyG)copyG.onclick=()=>copyText(googleSetupText(),'Googleカレンダー設定手順をコピーしました');
+      const calCheck=document.querySelector('[data-action="calendarSelfCheck"]'); if(calCheck)calCheck.onclick=()=>{const hasClient=!!(state.google.clientId||'').trim(); const hasEvents=state.calendarItems.length>0; toast(hasClient&&hasEvents?'Google連携の入口は確認OKです':hasClient?'Client IDはOK。次は予定取得を試してね':'まずClient IDを保存してね')};
+      const copyCalOps=document.querySelector('[data-action="copyCalendarOps"]'); if(copyCalOps)copyCalOps.onclick=()=>copyText(calendarOpsMemoText(),'Google連携の検証メモをコピーしました');
+      const copyCalPrivacy=document.querySelector('[data-action="copyCalendarPrivacy"]'); if(copyCalPrivacy)copyCalPrivacy.onclick=()=>copyText(calendarPrivacyText(),'カレンダー保存方針をコピーしました');
       const copyBrief=document.querySelector('[data-action="copyProductBrief"]'); if(copyBrief)copyBrief.onclick=()=>copyText(productBriefText(),'プロダクト要件をコピーしました');
       const copyBuild=document.querySelector('[data-action="copyBuildPlan"]'); if(copyBuild)copyBuild.onclick=()=>copyText(buildPlanText(),'残タスクをコピーしました');
       const copySchema=document.querySelector('[data-action="copySchema"]'); if(copySchema)copySchema.onclick=()=>copyText(supabaseSchemaText(),'DBスキーマをコピーしました');
@@ -340,9 +368,9 @@
     function exportJson(){const blob=new Blob([JSON.stringify({profile:state.profile,logs:state.logs},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`namilog-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)}
     function importJsonFromFile(event){const file=event.target.files?.[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const data=JSON.parse(reader.result); const incoming=Array.isArray(data)?data:(data.logs||[]); if(!Array.isArray(incoming)){toast('logs配列が見つかりません');return} const normalized=incoming.map(normalizeLog); const merged=[...normalized,...state.logs]; const byId=new Map(); merged.forEach(l=>byId.set(l.id,l)); state.logs=Array.from(byId.values()).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)); if(data.profile){state.profile={...state.profile,...data.profile}; saveProfile()} saveLogs(); toast(`${normalized.length}件のログを取り込みました`); render()}catch(e){toast('JSON取り込みに失敗しました')}}; reader.readAsText(file); event.target.value=''}
     function toast(msg){state.toast=msg;render();setTimeout(()=>{state.toast='';render()},2200)}
-    async function registerSW(){if(!('serviceWorker'in navigator))return null; try{const reg=await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=13`,{scope:BASE_PATH}); await reg.update(); state.registration=reg; return reg}catch(e){console.warn(e);return null}}
+    async function registerSW(){if(!('serviceWorker'in navigator))return null; try{const reg=await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=14`,{scope:BASE_PATH}); await reg.update(); state.registration=reg; return reg}catch(e){console.warn(e);return null}}
     async function requestNotify(){if(!('Notification'in window)){state.permission='unsupported';toast('このブラウザは通知に対応していません');return} const p=await Notification.requestPermission(); state.permission=p; if(p==='granted'){state.settings.browserNotification=true;saveSettings();await showBrowserNotification('manual')} else toast('通知はまだ許可されていません'); render()}
-    async function showBrowserNotification(reason='manual'){if(!('Notification'in window)){toast('通知に対応していません');return} if(Notification.permission!=='granted'){toast('先に通知オンを押してください');return} const reg=state.registration||await registerSW(); const url=new URL(`${BASE_PATH}?quickCheck=1`,location.origin).href; const opts={body:reason==='scheduled'?'そろそろ今の気分と進み具合を残しておこう。':'クリックすると、今の波を残せます。',tag:'namilog-wave-v13',renotify:true,data:{url},actions:[{action:'open',title:'今の波を残す'},{action:'later',title:'あとで'}]}; try{if(reg&&reg.showNotification) await reg.showNotification('NamiLog そっと声かけ',opts); else new Notification('NamiLog そっと声かけ',opts); if(reason==='manual')toast('テスト通知を出しました')}catch(e){try{new Notification('NamiLog そっと声かけ',opts);toast('テスト通知を出しました')}catch{toast('通知を出せませんでした')}}}
+    async function showBrowserNotification(reason='manual'){if(!('Notification'in window)){toast('通知に対応していません');return} if(Notification.permission!=='granted'){toast('先に通知オンを押してください');return} const reg=state.registration||await registerSW(); const url=new URL(`${BASE_PATH}?quickCheck=1`,location.origin).href; const opts={body:reason==='scheduled'?'そろそろ今の気分と進み具合を残しておこう。':'クリックすると、今の波を残せます。',tag:'namilog-wave-v14',renotify:true,data:{url},actions:[{action:'open',title:'今の波を残す'},{action:'later',title:'あとで'}]}; try{if(reg&&reg.showNotification) await reg.showNotification('NamiLog そっと声かけ',opts); else new Notification('NamiLog そっと声かけ',opts); if(reason==='manual')toast('テスト通知を出しました')}catch(e){try{new Notification('NamiLog そっと声かけ',opts);toast('テスト通知を出しました')}catch{toast('通知を出せませんでした')}}}
     let intervalId=null; function setupInterval(){if(intervalId)clearInterval(intervalId); if(state.settings.browserNotification&&state.permission==='granted'){intervalId=setInterval(()=>showBrowserNotification('scheduled'),state.settings.intervalMinutes*60*1000)}}
     if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){state.draft=draftWithSuggestedTask();state.quickOpen=true;render()}})}
     const params=new URLSearchParams(location.search); if(params.get('quickCheck')==='1'){state.draft=draftWithSuggestedTask();state.quickOpen=true; history.replaceState({},'',location.pathname)}
