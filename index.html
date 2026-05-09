@@ -76,6 +76,15 @@
     @media(max-width:560px){.app{width:calc(100% - 20px); padding-top:10px}.hero,.panel,.quick{padding:20px; border-radius:26px}h1{font-size:58px}.choice{min-height:104px}}
 
     .dbBox .checkItem span:first-child{display:grid;place-items:center;width:32px;height:32px;border-radius:12px;background:linear-gradient(135deg,#fff0e8,#f7e9ff);font-weight:900;color:var(--coral)}
+
+    .autoInsightBox{border-color:rgba(237,103,168,.32); background:linear-gradient(180deg,rgba(255,246,250,.95),rgba(255,255,255,.62))}
+    .aiPreviewGrid{display:grid; gap:10px; margin-top:12px}
+    .aiPreviewCard{padding:13px 14px; border:1px solid rgba(237,103,168,.20); border-radius:18px; background:rgba(255,255,255,.68); color:#4d5b72; line-height:1.62}
+    .aiPreviewCard b{color:#c84f74}
+    .signalMeter{height:12px; overflow:hidden; border-radius:999px; background:#fff1ee; border:1px solid rgba(255,139,112,.18); margin:11px 0 4px}
+    .signalMeter span{display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#ff7d69,#ed67a8,#9ca4ff)}
+    .reflectionQuote{margin-top:12px; padding:13px 14px; border-radius:18px; background:rgba(255,248,242,.9); border:1px solid rgba(255,139,112,.22); color:#76566a; line-height:1.7}
+
   </style>
 </head>
 <body>
@@ -88,7 +97,7 @@
     const PROFILE_KEY='namilog.profile.v1';
     const GOOGLE_KEY='namilog.googleCalendar.v1';
     const BASE_PATH='/Namilog/';
-    const VERSION='v15 account-db-roadmap';
+    const VERSION='v16 ai-insight-preview';
     const emotions=[
       {id:'fun',emoji:'😄',label:'楽しい',score:2},{id:'good',emoji:'🙂',label:'いい感じ',score:2},{id:'calm',emoji:'😌',label:'穏やか',score:1},{id:'tired',emoji:'🥺',label:'少ししんどい',score:-2},{id:'cloudy',emoji:'☁️',label:'モヤモヤ',score:-1}
     ];
@@ -197,6 +206,7 @@
             ${productionPlanHtml()}
             ${accountDbRoadmapHtml()}
             ${aiInsightHtml()}
+            ${aiAutoPreviewHtml()}
             ${productGoalHtml()}
             ${settingsHtml()}
             <div class="settingsBox"><h3>カレンダー予定の取り込み</h3><p class="hint">Googleカレンダー同期前の準備版です。今日の予定を貼り付けると、Quick Checkのタスク候補になります。</p><textarea id="calendarText" class="calendarPaste" placeholder="例：
@@ -277,7 +287,7 @@
 
     function aiInsightHtml(){
       const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); const preview=aiPromptText('weekly').slice(0,520)+'...';
-      return `<div class="settingsBox aiBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AIふりかえりパック</h3><p class="hint">NamiLogのログを、ChatGPT/Geminiに渡して日報・週報・1on1の分析材料にできます。</p></div><span class="statusPill granted">v15</span></div><div class="signalList"><div class="signalItem"><b>今週の問い</b><br>${escape(aiQuestion(insights))}</div><div class="signalItem"><b>分析対象</b><br>直近7日 ${logs.length}件の波、タスク、メモ、次アクションを使います。</div></div><div class="aiActionGrid"><button class="primary small" data-action="copyAiWeekly">AI週次分析をコピー</button><button class="ghost small" data-action="copyAiOneOnOne">1on1分析をコピー</button><button class="ghost small" data-action="copyAiDaily">日報深掘りをコピー</button><button class="ghost small" data-action="copyAiSummary">分析サマリをコピー</button></div><textarea class="aiPromptPreview" readonly>${escape(preview)}</textarea><p class="softNote">本番ではAPI接続にできます。今はまず、本人がコピーしてAIに渡す安全な入口にしています。</p></div>`
+      return `<div class="settingsBox aiBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AIふりかえりパック</h3><p class="hint">NamiLogのログを、ChatGPT/Geminiに渡して日報・週報・1on1の分析材料にできます。</p></div><span class="statusPill granted">v16</span></div><div class="signalList"><div class="signalItem"><b>今週の問い</b><br>${escape(aiQuestion(insights))}</div><div class="signalItem"><b>分析対象</b><br>直近7日 ${logs.length}件の波、タスク、メモ、次アクションを使います。</div></div><div class="aiActionGrid"><button class="primary small" data-action="copyAiWeekly">AI週次分析をコピー</button><button class="ghost small" data-action="copyAiOneOnOne">1on1分析をコピー</button><button class="ghost small" data-action="copyAiDaily">日報深掘りをコピー</button><button class="ghost small" data-action="copyAiSummary">分析サマリをコピー</button></div><textarea class="aiPromptPreview" readonly>${escape(preview)}</textarea><p class="softNote">本番ではAPI接続にできます。今はまず、本人がコピーしてAIに渡す安全な入口にしています。</p></div>`
     }
     function aiQuestion(insights){
       if(insights.score < -.4) return '今週、波が下がった場面にはどんなタスク・予定・言葉が重なっていたか？';
@@ -295,10 +305,36 @@
     }
     function aiSummaryText(){const logs=rangeLogs('week'); const insights=makeWeeklyInsights(logs); return [`# NamiLog 分析サマリ`,`記録者：${profileLabel()}`,`対象：直近7日 / ${logs.length}件`,`こころ天気：${insights.weather}`,`平均スコア：${insights.score.toFixed(1)}`,`多い感情：${insights.topEmotion?insights.topEmotion[0]:'未記録'}`,`多い進捗：${insights.topProgress?insights.topProgress[0]:'未記録'}`,`よく出た言葉：${wordsFrom(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ不足'}`,`上長面談のたね：`,...insights.managerSeeds.map(x=>`- ${x}`)].join('\n')}
 
+    function aiAutoPreviewHtml(){
+      const preview=makeAutoInsight(rangeLogs('week'));
+      const width=Math.max(8,Math.min(100,Math.round((preview.confidence||0)*100)));
+      return `<div class="settingsBox autoInsightBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>AI分析プレビュー</h3><p class="hint">API接続前でも、NamiLog内で週次の仮説カードを自動生成します。muute的な「振り返るきっかけ」を先に体験する版です。</p></div><span class="statusPill granted">v16</span></div><div class="signalMeter"><span style="width:${width}%"></span></div><p class="hint">分析材料の充足度：${width}% / ${preview.logs.length}件のログから生成</p><div class="aiPreviewGrid">${preview.cards.map(card=>`<div class="aiPreviewCard"><b>${escape(card.title)}</b><br>${escape(card.body)}</div>`).join('')}</div><div class="reflectionQuote">${escape(preview.quote)}</div><div class="sideActions"><button class="primary small" data-action="copyAutoInsight">この分析をコピー</button><button class="ghost small" data-action="copyAiApiPlan">AI API設計をコピー</button></div><p class="softNote">本番ではOpenAI/Gemini等のAPIで、同じ材料からより自然な文章と相関仮説を生成します。</p></div>`
+    }
+    function makeAutoInsight(logs){
+      const weekly=logs||rangeLogs('week'); const insights=makeWeeklyInsights(weekly); const stats=taskStats(weekly); const words=wordsFrom(weekly);
+      const low=stats.filter(t=>t.avg<-.3).slice(0,2); const high=stats.filter(t=>t.avg>.5).slice(0,2);
+      const cards=[];
+      cards.push({title:'こころ天気',body:`今週は${insights.weather}。平均スコアは${insights.score.toFixed(1)}で、感情は「${insights.topEmotion?insights.topEmotion[0]:'未記録'}」が目立ちます。`});
+      if(high.length) cards.push({title:'波が上がりやすい要素',body:`「${high.map(x=>x.task).join('」「')}」のときは比較的波が上がっています。再現条件を日報や週報に残すとよさそうです。`});
+      if(low.length) cards.push({title:'相談してよさそうな要素',body:`「${low.map(x=>x.task).join('」「')}」のときに波が下がりやすい傾向があります。1on1では、詰まり方や支援の形を話題にできそうです。`});
+      if(words.length) cards.push({title:'よく出た言葉',body:`今週は「${words.slice(0,4).map(([w,c])=>`${w}(${c})`).join('、')}」が多めでした。関心や負荷が集まっているテーマの可能性があります。`});
+      if(cards.length<4) cards.push({title:'次に観察したいこと',body:'感情・進捗・タスクをもう数件ためると、「何をしているときに波が変わるか」が見えやすくなります。'});
+      const quote=weekly.length?`問い：今週の波を上げた条件と、下げた条件は何だった？次の1週間でひとつだけ整えるならどこ？`:'問い：まずは今日のどこか1回、感情と進捗だけでも残してみよう。';
+      return {logs:weekly, cards, quote, confidence:Math.min(1, weekly.length/12)};
+    }
+    function autoInsightText(){
+      const preview=makeAutoInsight(rangeLogs('week'));
+      return [`# NamiLog AI分析プレビュー`,`記録者：${profileLabel()}`,`対象：直近7日 / ${preview.logs.length}件`,``,...preview.cards.map(c=>`## ${c.title}\n${c.body}`),``,`## 振り返りの問い`,preview.quote].join('\n')
+    }
+    function aiApiPlanText(){
+      return [`# NamiLog AI API設計メモ`,``,`## 目的`,`NamiLog内の感情・進捗・タスク・メモをもとに、日報/週報/1on1の材料になる分析カードを自動生成する。`,``,`## 入力`,`- user_id`,`- 対象期間(day/week/month)`,`- logs: created_at, emotion_label, emotion_score, progress_label, progress_score, task, memo, next_action`,`- calendar_events: title, start_at, end_at（必要最小限）`,``,`## 出力`,`- こころ天気`,`- 感情の波の要約`,`- 進捗が上がった/下がったタスク仮説`,`- よく出た言葉`,`- 上長面談で話すとよさそうなこと`,`- 日報/週報にそのまま使える文章`,``,`## 注意`,`- 断定せず「仮説」として返す`,`- 本人を責める表現を避ける`,`- 管理者が個人ログを直接閲覧する前提にしない`,`- 共有は本人がコピーした要約だけにする`].join('\n')
+    }
+
+
 
 
     function accountDbRoadmapHtml(){
-      return `<div class="settingsBox dbBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>個別アカウント実装ロードマップ</h3><p class="hint">全社利用に向けて、ローカル保存から「本人だけ参照できるDB保存」へ移すための手順を具体化しました。</p></div><span class="statusPill granted">v15</span></div><div class="checkGrid"><div class="checkItem"><span>1</span><span><b>Googleログイン</b><br>社員メールでログインし、auth.uid() をログの user_id として使います。</span></div><div class="checkItem"><span>2</span><span><b>Supabase保存</b><br>profiles / logs / calendar_events に保存。現在のJSON構造をそのまま移行しやすくしています。</span></div><div class="checkItem"><span>3</span><span><b>本人だけ参照</b><br>RLSで「自分のログだけ読める/書ける」状態にして、管理者が個人ログを覗く設計にはしません。</span></div><div class="checkItem"><span>4</span><span><b>任意共有</b><br>上長にはログそのものではなく、本人がコピーした日報・週報・面談のたねだけ共有します。</span></div></div><div class="sideActions"><button class="primary small" data-action="copyAuthFlow">ログイン実装順をコピー</button><button class="ghost small" data-action="copyEnvTemplate">環境変数テンプレをコピー</button><button class="ghost small" data-action="copyMigrationChecklist">移行チェックリストをコピー</button></div><textarea class="schemaPreview" readonly>${escape(accountDbPreviewText())}</textarea><p class="privacyNote">次に本当に接続するには、Supabase URL / anon key と Google OAuth Client ID が必要です。今日の版では、実装手順とデータ境界をアプリ内に固定しました。</p></div>`
+      return `<div class="settingsBox dbBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>個別アカウント実装ロードマップ</h3><p class="hint">全社利用に向けて、ローカル保存から「本人だけ参照できるDB保存」へ移すための手順を具体化しました。</p></div><span class="statusPill granted">v16</span></div><div class="checkGrid"><div class="checkItem"><span>1</span><span><b>Googleログイン</b><br>社員メールでログインし、auth.uid() をログの user_id として使います。</span></div><div class="checkItem"><span>2</span><span><b>Supabase保存</b><br>profiles / logs / calendar_events に保存。現在のJSON構造をそのまま移行しやすくしています。</span></div><div class="checkItem"><span>3</span><span><b>本人だけ参照</b><br>RLSで「自分のログだけ読める/書ける」状態にして、管理者が個人ログを覗く設計にはしません。</span></div><div class="checkItem"><span>4</span><span><b>任意共有</b><br>上長にはログそのものではなく、本人がコピーした日報・週報・面談のたねだけ共有します。</span></div></div><div class="sideActions"><button class="primary small" data-action="copyAuthFlow">ログイン実装順をコピー</button><button class="ghost small" data-action="copyEnvTemplate">環境変数テンプレをコピー</button><button class="ghost small" data-action="copyMigrationChecklist">移行チェックリストをコピー</button></div><textarea class="schemaPreview" readonly>${escape(accountDbPreviewText())}</textarea><p class="privacyNote">次に本当に接続するには、Supabase URL / anon key と Google OAuth Client ID が必要です。今日の版では、実装手順とデータ境界をアプリ内に固定しました。</p></div>`
     }
     function accountDbPreviewText(){return ['ログイン: Google OAuth','保存先: Supabase profiles / logs / calendar_events','権限: RLSで user_id = auth.uid() の行だけ参照','共有: 本人が日報/週報/1on1のたねをコピー'].join('\n')}
     function authFlowText(){return [`# NamiLog 個別アカウント実装順`,``,`## 目的`,`全社利用時も、社員それぞれが自分だけの感情・進捗・タスクログを作り、本人だけが参照できる状態にする。共有は自動ではなく、本人が日報・週報・1on1のたねをコピーして行う。`,``,`## 実装順`,`1. Supabaseプロジェクトを作成する`,`2. Authentication > Providers で Google を有効化する`,`3. Google Cloud ConsoleでOAuth Client IDを作成する`,`4. Authorized JavaScript origins に https://antisanogile.github.io を追加する`,`5. Redirect URLにSupabaseのcallback URLを追加する`,`6. profiles / logs / calendar_events テーブルを作成する`,`7. RLSを有効化し、auth.uid() = user_id のポリシーを入れる`,`8. NamiLogのlocalStorage保存を、ログイン済みならSupabase保存へ切り替える`,`9. 未ログイン時は今まで通りローカル試用できるようにする`,`10. JSON出力/取り込みで既存ローカルログを移行する`,``,`## 画面で必要な状態`,`- 未ログイン: ローカル保存 / 試用中`,`- ログイン済み: DB保存 / 自分専用ログ`,`- 同期エラー: ローカルに一時退避し、再同期できるようにする`].join('\n')}
@@ -314,9 +350,9 @@
         ['✅','Google予定の実連携チェック','予定取得とQuick Check候補化の検証導線を追加','済'],
         ['✅','個別アカウント本番化の設計','Googleログイン + DB + RLSの実装順を整理','済'],
         ['🟡','DB接続の実装','Supabaseプロジェクト作成後に保存先をDBへ切替','次'],
-        ['🟡','AI自動分析','API接続して週次インサイトをアプリ内生成','次']
+        ['✅','AI分析プレビュー','API前の仮説カードをアプリ内生成','済']
       ];
-      return `<div class="settingsBox goalBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>完成形への地図</h3><p class="hint">muute的な自己理解を、業務ログ・日報・週報・1on1に変換するための要件マップです。</p></div><span class="statusPill granted">v15</span></div><div class="goalSteps">${steps.map(s=>`<div class="goalStep"><span>${s[0]}</span><span><b>${s[1]}</b><br>${s[2]}</span><small>${s[3]}</small></div>`).join('')}</div><div class="sideActions"><button class="primary small" data-action="copyProductBrief">プロダクト要件をコピー</button><button class="ghost small" data-action="copyBuildPlan">残タスクをコピー</button></div><p class="softNote">今日の試作は、個別アカウント化に向けた実装順まで見える状態です。ここから先は、Supabaseプロジェクト作成と接続キー設定が中心です。</p></div>`
+      return `<div class="settingsBox goalBox"><div class="sectionHead" style="margin-bottom:8px"><div><h3>完成形への地図</h3><p class="hint">muute的な自己理解を、業務ログ・日報・週報・1on1に変換するための要件マップです。</p></div><span class="statusPill granted">v16</span></div><div class="goalSteps">${steps.map(s=>`<div class="goalStep"><span>${s[0]}</span><span><b>${s[1]}</b><br>${s[2]}</span><small>${s[3]}</small></div>`).join('')}</div><div class="sideActions"><button class="primary small" data-action="copyProductBrief">プロダクト要件をコピー</button><button class="ghost small" data-action="copyBuildPlan">残タスクをコピー</button></div><p class="softNote">今日の試作は、個別アカウント化に向けた実装順まで見える状態です。ここから先は、Supabase接続とAI API接続を本当に動かす工程が中心です。</p></div>`
     }
     function productBriefText(){return [`# NamiLog プロダクト要件メモ`,``,`## 目的`,`感情・進捗・タスクを短時間で記録し、日報・週報・上長面談の材料に変換する。muuteのように、自分の波や言葉の傾向を可視化して、自己理解と業務改善のきっかけを提供する。`,``,`## 入力`,`- 感情`,`- 進捗`,`- タスク/予定（Googleカレンダー連携）`,`- 30秒メモ`,`- 次アクション`,``,`## 出力`,`- 日報のたね`,`- 週報のたね`,`- モチベーショングラフ（日/週/月）`,`- こころ天気`,`- よく出た言葉`,`- 感情とタスクのつながり`,`- 上長面談のたね`,`- AI分析プロンプト`,``,`## データ方針`,`- 共有ログではなく、本人だけの個別ログ`,`- 上長共有は自動ではなく、本人が必要箇所をコピーして共有`,`- 本番ではGoogleログイン + DB + RLSで本人だけ参照可能にする`].join('\n')}
     function buildPlanText(){return [`# NamiLog 残タスク`,``,`## すぐ次にやる`,`1. Supabaseプロジェクトを作成し、環境変数を入れる`,`2. Googleログインを通す`,`3. ローカルログをログインユーザーのDBログへ移行する`,``,`## MVP完成まで`,`4. Googleカレンダー予定をユーザーごとに同期`,`5. AI分析をAPI化するか、コピー運用にするか決める`,`6. PWA/デスクトップ通知の安定化`,`7. 小規模チームでログ保存/削除/エクスポートの動作確認`,``,`## 全社展開前`,`8. プライバシー文言・利用規約・ログ保存期間`,`9. 管理者が個人ログを直接見ない設計の確認`,`10. 小規模チームで運用テスト`].join('\n')}
@@ -351,6 +387,8 @@
       const aiOne=document.querySelector('[data-action="copyAiOneOnOne"]'); if(aiOne)aiOne.onclick=()=>copyText(aiPromptText('oneonone'),'1on1分析プロンプトをコピーしました');
       const aiDaily=document.querySelector('[data-action="copyAiDaily"]'); if(aiDaily)aiDaily.onclick=()=>copyText(aiPromptText('daily'),'日報深掘りプロンプトをコピーしました');
       const aiSummary=document.querySelector('[data-action="copyAiSummary"]'); if(aiSummary)aiSummary.onclick=()=>copyText(aiSummaryText(),'分析サマリをコピーしました');
+      const autoInsight=document.querySelector('[data-action="copyAutoInsight"]'); if(autoInsight)autoInsight.onclick=()=>copyText(autoInsightText(),'AI分析プレビューをコピーしました');
+      const aiApiPlan=document.querySelector('[data-action="copyAiApiPlan"]'); if(aiApiPlan)aiApiPlan.onclick=()=>copyText(aiApiPlanText(),'AI API設計をコピーしました');
       const saveG=document.querySelector('[data-action="saveGoogleClient"]'); if(saveG)saveG.onclick=saveGoogleClient;
       const connectG=document.querySelector('[data-action="connectGoogleCalendar"]'); if(connectG)connectG.onclick=connectGoogleCalendar;
       const copyG=document.querySelector('[data-action="copyGoogleSetup"]'); if(copyG)copyG.onclick=()=>copyText(googleSetupText(),'Googleカレンダー設定手順をコピーしました');
@@ -384,9 +422,9 @@
     function exportJson(){const blob=new Blob([JSON.stringify({profile:state.profile,logs:state.logs},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`namilog-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)}
     function importJsonFromFile(event){const file=event.target.files?.[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const data=JSON.parse(reader.result); const incoming=Array.isArray(data)?data:(data.logs||[]); if(!Array.isArray(incoming)){toast('logs配列が見つかりません');return} const normalized=incoming.map(normalizeLog); const merged=[...normalized,...state.logs]; const byId=new Map(); merged.forEach(l=>byId.set(l.id,l)); state.logs=Array.from(byId.values()).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)); if(data.profile){state.profile={...state.profile,...data.profile}; saveProfile()} saveLogs(); toast(`${normalized.length}件のログを取り込みました`); render()}catch(e){toast('JSON取り込みに失敗しました')}}; reader.readAsText(file); event.target.value=''}
     function toast(msg){state.toast=msg;render();setTimeout(()=>{state.toast='';render()},2200)}
-    async function registerSW(){if(!('serviceWorker'in navigator))return null; try{const reg=await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=15`,{scope:BASE_PATH}); await reg.update(); state.registration=reg; return reg}catch(e){console.warn(e);return null}}
+    async function registerSW(){if(!('serviceWorker'in navigator))return null; try{const reg=await navigator.serviceWorker.register(`${BASE_PATH}namilog-sw.js?v=16`,{scope:BASE_PATH}); await reg.update(); state.registration=reg; return reg}catch(e){console.warn(e);return null}}
     async function requestNotify(){if(!('Notification'in window)){state.permission='unsupported';toast('このブラウザは通知に対応していません');return} const p=await Notification.requestPermission(); state.permission=p; if(p==='granted'){state.settings.browserNotification=true;saveSettings();await showBrowserNotification('manual')} else toast('通知はまだ許可されていません'); render()}
-    async function showBrowserNotification(reason='manual'){if(!('Notification'in window)){toast('通知に対応していません');return} if(Notification.permission!=='granted'){toast('先に通知オンを押してください');return} const reg=state.registration||await registerSW(); const url=new URL(`${BASE_PATH}?quickCheck=1`,location.origin).href; const opts={body:reason==='scheduled'?'そろそろ今の気分と進み具合を残しておこう。':'クリックすると、今の波を残せます。',tag:'namilog-wave-v15',renotify:true,data:{url},actions:[{action:'open',title:'今の波を残す'},{action:'later',title:'あとで'}]}; try{if(reg&&reg.showNotification) await reg.showNotification('NamiLog そっと声かけ',opts); else new Notification('NamiLog そっと声かけ',opts); if(reason==='manual')toast('テスト通知を出しました')}catch(e){try{new Notification('NamiLog そっと声かけ',opts);toast('テスト通知を出しました')}catch{toast('通知を出せませんでした')}}}
+    async function showBrowserNotification(reason='manual'){if(!('Notification'in window)){toast('通知に対応していません');return} if(Notification.permission!=='granted'){toast('先に通知オンを押してください');return} const reg=state.registration||await registerSW(); const url=new URL(`${BASE_PATH}?quickCheck=1`,location.origin).href; const opts={body:reason==='scheduled'?'そろそろ今の気分と進み具合を残しておこう。':'クリックすると、今の波を残せます。',tag:'namilog-wave-v16',renotify:true,data:{url},actions:[{action:'open',title:'今の波を残す'},{action:'later',title:'あとで'}]}; try{if(reg&&reg.showNotification) await reg.showNotification('NamiLog そっと声かけ',opts); else new Notification('NamiLog そっと声かけ',opts); if(reason==='manual')toast('テスト通知を出しました')}catch(e){try{new Notification('NamiLog そっと声かけ',opts);toast('テスト通知を出しました')}catch{toast('通知を出せませんでした')}}}
     let intervalId=null; function setupInterval(){if(intervalId)clearInterval(intervalId); if(state.settings.browserNotification&&state.permission==='granted'){intervalId=setInterval(()=>showBrowserNotification('scheduled'),state.settings.intervalMinutes*60*1000)}}
     if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){state.draft=draftWithSuggestedTask();state.quickOpen=true;render()}})}
     const params=new URLSearchParams(location.search); if(params.get('quickCheck')==='1'){state.draft=draftWithSuggestedTask();state.quickOpen=true; history.replaceState({},'',location.pathname)}
