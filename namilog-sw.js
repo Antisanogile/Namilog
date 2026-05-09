@@ -4,6 +4,7 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'later') return;
   const url = (event.notification.data && event.notification.data.url) || '/Namilog/?quickCheck=1';
+  // v22-pilot-readiness
   event.waitUntil((async () => {
     const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of allClients) {
