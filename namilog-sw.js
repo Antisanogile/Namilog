@@ -1,4 +1,4 @@
-// v37 colleague calendar test
+// v38 monthly report
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {
