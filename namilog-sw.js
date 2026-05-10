@@ -1,4 +1,4 @@
-// v38 monthly report
+// v39 monthly report
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {

@@ -1,4 +1,4 @@
-const VERSION='v38-monthly-report';
+const VERSION='v39-admin-package';
 const EMBEDDED_GOOGLE_CLIENT_ID='962194635793-8oepjpgi0hch239o8ie5cief8ccn2jrl.apps.googleusercontent.com';
 const LOG_KEY='namilog.quick-check.logs.v1';
 const SETTINGS_KEY='namilog.quick-check.settings.v1';
@@ -126,7 +126,7 @@ function monthlyPanel(){
 function render(){save(LOG_KEY,state.logs);save(SETTINGS_KEY,state.settings);save(PROFILE_KEY,state.profile);save(TASK_KEY,state.tasks);save(CALENDAR_KEY,state.calendarEvents);save(DB_KEY,state.db);save(AUTH_KEY,state.auth);save(ONBOARD_KEY,state.onboardingDone);document.getElementById('app').innerHTML=html();bind()}
 function html(){const logs=todayLogs();const plogs=periodLogs();return `<div class="app">
 <header class="hero"><div><span class="badge">NAMILOG <span class="version">${VERSION}</span></span><h1>NamiLog</h1><p class="lead">感情の波と仕事の進み方を、やさしく見える化するログアプリです。まずは3秒で残す。あとから補足・修正して、日報・週報・1on1のたねに変えます。</p></div><div class="heroActions"><button class="btn primary" data-a="openQuick">今の波を残す</button><button class="btn soft" data-a="copyDaily">日報をコピー</button></div></header>
-<div class="grid"><main>${wavePanel(plogs)}${logsPanel(logs)}</main><aside>${onboardingPanel()}${dailyPanel()}${weeklyPanel(plogs)}${monthlyPanel()}${reminderPanel()}${settingsPanel()}${calendarTestPanel()}${qaPanel()}${devPanel()}</aside></div>${state.quick?quickHtml():''}${state.toast?`<div class="toast">${esc(state.toast)}</div>`:''}</div>`}
+<div class="grid"><main>${wavePanel(plogs)}${logsPanel(logs)}</main><aside>${onboardingPanel()}${dailyPanel()}${weeklyPanel(plogs)}${monthlyPanel()}${adminPackagePanel()}${reminderPanel()}${settingsPanel()}${calendarTestPanel()}${qaPanel()}${devPanel()}</aside></div>${state.quick?quickHtml():''}${state.toast?`<div class="toast">${esc(state.toast)}</div>`:''}</div>`}
 function wavePanel(logs){const w=weather(logs);return `<section class="panel"><div class="sectionHead"><div><p class="eyebrow">Motivation Wave</p><h2>モチベーションの波</h2></div><span class="count">${logs.length}件</span></div><div class="tabs"><button class="tab ${state.view==='day'?'on':''}" data-view="day">日</button><button class="tab ${state.view==='week'?'on':''}" data-view="week">週</button><button class="tab ${state.view==='month'?'on':''}" data-view="month">月</button></div><div class="chart">${waveSvg(trendData())}</div><div class="kpi"><div><b>${avg(logs,l=>l.emotionScore).toFixed(1)}</b><span class="muted">感情平均</span></div><div><b>${avg(logs,l=>l.progressScore).toFixed(1)}</b><span class="muted">進捗平均</span></div><div><b>${words(logs).length}</b><span class="muted">よく出た言葉</span></div></div><div class="insights">${insightCards(logs).map(c=>`<div class="insight"><b>${esc(c.t)}：${esc(c.b)}</b><p>${esc(c.d)}</p></div>`).join('')}</div></section>`}
 function waveSvg(data){const pts=data.map((d,i)=>({...d,i})).filter(d=>Number.isFinite(d.score));if(!pts.length)return `<div class="emptyWave">まだ波がありません。<br>「今の波を残す」から1件記録してみましょう。</div>`;const W=720,H=210,p=30;const min=-2,max=2;const x=(i)=>p+(W-p*2)*(data.length===1?0.5:i/(data.length-1));const y=(s)=>p+(H-p*2)*(1-(Math.max(min,Math.min(max,s))-min)/(max-min));const path=pts.map((d,j)=>`${j?'L':'M'}${x(d.i)},${y(d.score)}`).join(' ');const first=pts[0],last=pts[pts.length-1];const area=pts.length>1?`${path} L ${x(last.i)},${H-p} L ${x(first.i)},${H-p} Z`:'';return `<svg class="waveSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="waveStroke" x1="0" x2="1"><stop stop-color="#ff8b73"/><stop offset=".55" stop-color="#ef73a6"/><stop offset="1" stop-color="#b9a7ff"/></linearGradient><linearGradient id="waveFill" y1="0" y2="1"><stop stop-color="#ef73a6" stop-opacity=".28"/><stop offset="1" stop-color="#fffdf9" stop-opacity=".05"/></linearGradient></defs><line class="waveGrid" x1="${p}" y1="${p}" x2="${W-p}" y2="${p}"/><line class="waveMid" x1="${p}" y1="${y(0)}" x2="${W-p}" y2="${y(0)}"/><line class="waveGrid" x1="${p}" y1="${H-p}" x2="${W-p}" y2="${H-p}"/><text class="waveAxis" x="8" y="${p+4}">高</text><text class="waveAxis" x="8" y="${y(0)+4}">中</text><text class="waveAxis" x="8" y="${H-p+4}">低</text>${area?`<path class="waveArea" d="${area}"/>`:''}<path class="waveLine" d="${path}"/>${pts.map(d=>`<circle class="wavePoint" cx="${x(d.i)}" cy="${y(d.score)}" r="5"/>`).join('')}${data.map((d,i)=>i===0||i===data.length-1||i===Math.floor(data.length/2)?`<text class="waveLabel" x="${x(i)-12}" y="${H-6}">${esc(d.label)}</text>`:'').join('')}</svg>`}
 function logsPanel(logs){const reportCount=logs.filter(l=>l.includeInReport!==false).length;return `<section class="panel"><div class="sectionHead"><div><p class="eyebrow">Today</p><h2>今日のログ</h2></div><span class="count">${reportCount}/${logs.length}件を日報へ</span></div><p class="muted">波グラフには全部残しつつ、日報・週報に入れたくない細かなログは外せます。</p>${logs.length?`<div class="logs">${logs.map(logCard).join('')}</div>`:`<div class="empty">まだ今日のログはありません。<br>通知が来たら、今の波をひとつ残してみましょう。</div>`}</section>`}
@@ -139,6 +139,9 @@ function onboardingPanel(){const checks=[
  ['通知',state.permission==='granted','やさしいリマインドを許可する'],
  ['日報コピー',todayLogs().some(l=>l.includeInReport!==false),'日報のたねをコピーしてみる']
 ];const done=checks.filter(c=>c[1]).length;const guide=`<section class="panel onboarding"><div class="sectionHead"><div><p class="eyebrow">First 3 minutes</p><h2>はじめての3分セットアップ</h2></div><span class="count">${done}/4</span></div><p class="muted">NamiLogは、毎日がんばって書くアプリではありません。通知が来たら、今の感情・進み具合・タスクをひとつ残すだけでOKです。</p><div class="steps">${checks.map((c,i)=>`<div class="step ${c[1]?'done':''}"><span>${c[1]?'✓':i+1}</span><div><b>${c[0]}</b><p>${c[2]}</p></div></div>`).join('')}</div><div class="sideActions"><button class="btn primary tiny" data-a="openQuick">最初の波を残す</button><button class="btn soft tiny" data-a="requestNotif">通知オン</button><button class="btn soft tiny" data-a="copyFirstGuide">初回ガイドコピー</button><button class="btn soft tiny" data-a="completeOnboarding">${state.onboardingDone?'ガイド表示中':'このガイドを閉じる'}</button></div><p class="muted">個人ログは本人の振り返り用です。共有は、本人が日報・週報としてコピーした範囲だけ。</p></section>`;return state.onboardingDone?`<section class="panel"><details class="devDetails"><summary>はじめての3分セットアップを開く</summary>${guide}</details></section>`:guide}
+
+function adminPackagePanel(){return `<section class="panel"><details class="devDetails"><summary>管理者導入パッケージを開く</summary><div class="sectionHead"><div><p class="eyebrow">Admin Package</p><h2>管理者導入パッケージ</h2></div><span class="count">v39</span></div><p class="muted">全社パイロット前に、管理者が共有・説明しやすい材料をここに集約します。社員の毎日画面には出しすぎず、必要な時だけ開く想定です。</p><div class="insights"><div class="insight"><b>導入説明</b><p>NamiLogの目的、利用者メリット、評価・監視に使わない前提を説明します。</p></div><div class="insight"><b>安全利用方針</b><p>個人ログは本人だけが参照し、共有は本人がコピーした範囲だけにする方針です。</p></div><div class="insight"><b>パイロット計画</b><p>小規模に使って、通知・日報・週報・1on1の価値を確認します。</p></div><div class="insight"><b>FAQ</b><p>Google連携、通知、ログ保存、共有範囲で出そうな質問を先回りします。</p></div></div><div class="sideActions"><button class="btn primary tiny" data-a="copyAdminIntro">導入説明コピー</button><button class="btn soft tiny" data-a="copySafetyPolicy">安全利用方針コピー</button><button class="btn soft tiny" data-a="copyPilotPlan">パイロット計画コピー</button><button class="btn soft tiny" data-a="copyFaq">FAQコピー</button></div></details></section>`}
+
 function reminderPanel(){const ok=state.permission==='granted';return `<section class="panel"><div class="sectionHead"><div><p class="eyebrow">Gentle Reminder</p><h2>やさしいリマインド</h2></div><span class="status ${ok?'ok':'warn'}">${ok?'許可済み':state.permission==='denied'?'ブロック中':'未許可'}</span></div><p class="muted">他の作業中でも、Windows右下からNamiLogがそっと声をかけます。</p><div class="sideActions"><button class="btn primary tiny" data-a="requestNotif">通知オン</button><button class="btn soft tiny" data-a="testNotif">テスト通知</button></div><label class="setting"><span>定期的に声をかけてもらう</span><input type="checkbox" data-set="browserNotification" ${state.settings.browserNotification?'checked':''}></label><label class="setting"><span>間隔</span><select data-set="intervalMinutes"><option value="30" ${state.settings.intervalMinutes==30?'selected':''}>30分</option><option value="60" ${state.settings.intervalMinutes==60?'selected':''}>1時間</option><option value="120" ${state.settings.intervalMinutes==120?'selected':''}>2時間</option><option value="180" ${state.settings.intervalMinutes==180?'selected':''}>3時間</option></select></label></section>`}
 function settingsPanel(){return `<section class="panel"><div class="sectionHead"><div><p class="eyebrow">Setup</p><h2>毎日使う設定</h2></div></div><div class="box"><h3>マイログ設定</h3><label class="setting"><span>名前</span><input type="text" data-profile="name" value="${esc(state.profile.name)}" placeholder="自分だけの表示名"></label><label class="setting"><span>メール</span><input type="email" data-profile="email" value="${esc(state.profile.email)}" placeholder="name@example.com"></label><label class="setting"><span>チーム</span><input type="text" data-profile="team" value="${esc(state.profile.team)}" placeholder="所属チーム"></label></div><div class="box"><h3>今日のタスク候補</h3><p class="muted">Googleカレンダー同期前でも、予定を貼るとタスク候補になります。</p><textarea class="inputLine calendarPaste" id="calendarPaste" placeholder="例：\n09:30 朝会\n10:00-11:00 顧客MTG">${esc(state.calendarPaste)}</textarea><div class="sideActions"><button class="btn primary tiny" data-a="importCalendar">予定を取り込む</button><button class="btn soft tiny" data-a="calendarSample">サンプル</button><button class="btn soft tiny" data-a="connectGoogle">Googleカレンダーとつなぐ</button></div><div class="inputLine"><input id="taskAdd" placeholder="例：商談準備、週報、1on1"><button class="btn soft tiny" data-a="addTask">追加</button></div><div class="taskChips">${state.tasks.slice(0,18).map(t=>`<button class="chip" data-taskpick="${esc(t)}">${esc(t)}</button>`).join('')}</div></div></section>`}
 function calendarTestPanel(){const client=(state.settings.googleClientId||EMBEDDED_GOOGLE_CLIENT_ID||'').trim();return `<section class="panel"><div class="sectionHead"><div><p class="eyebrow">Calendar Pilot</p><h2>同僚テスト準備</h2></div><span class="status ${client?'ok':'warn'}">${client?'Client ID設定済み':'未設定'}</span></div><p class="muted">明日のテストは、同僚がClient IDを入力せずに「Googleカレンダーとつなぐ」を押すだけで進められる想定です。</p><div class="box"><h3>テストで見ること</h3><p>Google許可画面が出るか / 今日の予定がタスク候補に入るか / Quick Checkで予定つきログが保存できるか。</p><div class="sideActions"><button class="btn primary tiny" data-a="connectGoogle">自分で接続テスト</button><button class="btn soft tiny" data-a="copyColleagueTest">同僚テスト手順コピー</button><button class="btn soft tiny" data-a="copyGoogleTrouble">失敗時メモコピー</button></div></div></section>`}
@@ -152,7 +155,7 @@ function qaPanel(){const checks=[
 function devPanel(){return `<section class="panel"><details class="devDetails"><summary>管理者・開発者メニューを開く</summary><div class="devGrid"><div class="box"><h3>Googleカレンダー / DB / AIは裏側へ</h3><p>OAuth Client IDはv36でアプリに埋め込み済み。社員は基本的に「Googleカレンダーとつなぐ」を押すだけで試せます。</p><div class="sideActions"><button class="btn soft tiny" data-a="copySpec">P0要件コピー</button><button class="btn soft tiny" data-a="copyAdminGuide">管理者メモコピー</button><button class="btn soft tiny" data-a="copyDbSchema">DBスキーマコピー</button></div></div><div class="box"><h3>Googleカレンダー設定</h3><p class="muted">OAuth Client IDは埋め込み済みです。社員はClient IDを入力せずに「Googleカレンダーとつなぐ」だけで試せます。</p><div class="sideActions"><button class="btn primary tiny" data-a="connectGoogle">Googleカレンダーとつなぐ</button><button class="btn soft tiny" data-a="copyGoogleSetup">Google手順コピー</button><button class="btn soft tiny" data-a="copyCalendarPolicy">保存方針コピー</button></div><details style="margin-top:10px"><summary class="muted">管理者向け：Client IDを差し替える</summary><label class="setting"><span>OAuth Client ID</span><input type="text" data-setting="googleClientId" value="${esc(state.settings.googleClientId || EMBEDDED_GOOGLE_CLIENT_ID)}" placeholder="xxxx.apps.googleusercontent.com"></label></details><p class="muted">取得するのは予定タイトル / 開始時刻 / 終了時刻のみです。</p></div><div class="box"><h3>Supabase準備</h3><label class="setting"><span>Supabase URL</span><input type="text" data-db="supabaseUrl" value="${esc(state.db.supabaseUrl)}"></label><label class="setting"><span>Anon Key</span><input type="text" data-db="anonKey" value="${esc(state.db.anonKey)}"></label><label class="setting"><span>Table</span><input type="text" data-db="table" value="${esc(state.db.table)}"></label><p class="muted">現在：${esc(state.auth.status)} / ${esc(state.db.status)}</p></div></div></details></section>`}
 function quickHtml(){const taskOptions=[...new Set([state.draft.task,...state.tasks].filter(Boolean))];return `<div class="quick"><button class="close" data-a="closeQuick">×</button><p class="eyebrow">Quick Check</p><h2>${state.editId?'波を補足・修正する':'今の波を残す'}</h2><p>${state.editId?'あとから思い出したことを少し整えます。日報の材料がぐっと使いやすくなります。':'感情・進み具合・いまのタスクを、3秒だけ観測します。'}</p><div class="choiceTitle">感情 <span>ひとつ選ぶ</span></div><div class="choices">${emotions.map(e=>`<button class="choice ${state.draft.emotion?.id===e.id?'selected':''}" data-emotion="${e.id}"><span class="emoji">${e.emoji}</span><b>${e.label}</b></button>`).join('')}</div><div class="choiceTitle">進み具合 <span>任意</span></div><div class="choices">${progresses.map(p=>`<button class="choice ${state.draft.progress?.id===p.id?'selected':''}" data-progress="${p.id}"><span class="emoji">${p.emoji}</span><b>${p.label}</b></button>`).join('')}</div><div class="inputLine"><select id="draftTask"><option value="">タスクを選ぶ</option>${taskOptions.map(t=>`<option ${state.draft.task===t?'selected':''}>${esc(t)}</option>`).join('')}</select><input id="draftMemo" placeholder="30秒メモ 任意" value="${esc(state.draft.memo)}"><input id="draftNext" placeholder="次の一手 任意" value="${esc(state.draft.nextAction)}"></div><div class="quickFooter"><button class="btn primary" data-a="saveLog">${state.editId?'修正を保存':'この波を残す'}</button><button class="btn soft" data-a="closeQuick">${state.editId?'修正をやめる':'あとで'}</button></div></div>`}
 function bind(){document.querySelectorAll('[data-a]').forEach(el=>el.onclick=()=>action(el.dataset.a));document.querySelectorAll('[data-view]').forEach(el=>el.onclick=()=>{state.view=el.dataset.view;render()});document.querySelectorAll('[data-emotion]').forEach(el=>el.onclick=()=>{state.draft.emotion=emotions.find(e=>e.id===el.dataset.emotion);render()});document.querySelectorAll('[data-progress]').forEach(el=>el.onclick=()=>{state.draft.progress=progresses.find(p=>p.id===el.dataset.progress);render()});document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>startEdit(el.dataset.edit));document.querySelectorAll('[data-del]').forEach(el=>el.onclick=()=>{state.logs=state.logs.filter(l=>l.id!==el.dataset.del);toast('削除しました')});document.querySelectorAll('[data-report]').forEach(el=>el.onclick=()=>{state.logs=state.logs.map(l=>l.id===el.dataset.report?{...l,includeInReport:l.includeInReport===false}:l);toast(state.logs.find(l=>l.id===el.dataset.report)?.includeInReport===false?'日報から外しました':'日報に戻しました')});document.querySelectorAll('[data-set]').forEach(el=>el.onchange=()=>{const k=el.dataset.set;state.settings[k]=el.type==='checkbox'?el.checked:Number(el.value)||el.value;render()});document.querySelectorAll('[data-setting]').forEach(el=>el.oninput=()=>{state.settings[el.dataset.setting]=el.value;save(SETTINGS_KEY,state.settings)});document.querySelectorAll('[data-profile]').forEach(el=>el.oninput=()=>{state.profile[el.dataset.profile]=el.value;save(PROFILE_KEY,state.profile)});document.querySelectorAll('[data-db]').forEach(el=>el.oninput=()=>{state.db[el.dataset.db]=el.value;save(DB_KEY,state.db)});document.querySelectorAll('[data-taskpick]').forEach(el=>el.onclick=()=>{state.draft.task=el.dataset.taskpick;state.quick=true;render()})}
-function action(a){if(a==='openQuick'){resetDraft();state.quick=true;render()}if(a==='closeQuick'){resetDraft();state.quick=false;render()}if(a==='saveLog')saveLog();if(a==='copyDaily')copy(dailyText(),'日報のたねをコピーしました');if(a==='copyWeekly')copy(weeklyText(),'週報/1on1のたねをコピーしました');if(a==='copyMonthly')copy(monthlyText(),'月次ふりかえりをコピーしました');if(a==='exportJson')exportJson();if(a==='clearLogs')clearLogs();if(a==='requestNotif')requestNotif();if(a==='testNotif')showNotif('manual');if(a==='importCalendar')importCalendar();if(a==='calendarSample'){document.getElementById('calendarPaste').value='09:30 朝会\n10:00-11:00 顧客MTG\n15:00 1on1';importCalendar(true)}if(a==='connectGoogle')connectGoogleCalendar();if(a==='addTask'){const v=document.getElementById('taskAdd')?.value.trim();if(v&&!state.tasks.includes(v))state.tasks.unshift(v);render()}if(a==='copySpec')copy(specText(),'P0要件をコピーしました');if(a==='copyAdminGuide')copy(adminGuideText(),'管理者メモをコピーしました');if(a==='copyDbSchema')copy(dbSchemaText(),'DBスキーマをコピーしました');if(a==='copyGoogleSetup')copy(googleSetupText(),'Google手順をコピーしました');if(a==='copyCalendarPolicy')copy(calendarPolicyText(),'保存方針をコピーしました');if(a==='copyQa')copy(qaText(),'QAメモをコピーしました');if(a==='copyColleagueTest')copy(colleagueTestText(),'同僚テスト手順をコピーしました');if(a==='copyGoogleTrouble')copy(googleTroubleText(),'Google連携トラブルメモをコピーしました');if(a==='selfTest')addSelfTestLog();if(a==='copyFirstGuide')copy(firstGuideText(),'初回ガイドをコピーしました');if(a==='completeOnboarding'){state.onboardingDone=!state.onboardingDone;toast(state.onboardingDone?'ガイドを閉じました':'ガイドを再表示します')}}
+function action(a){if(a==='openQuick'){resetDraft();state.quick=true;render()}if(a==='closeQuick'){resetDraft();state.quick=false;render()}if(a==='saveLog')saveLog();if(a==='copyDaily')copy(dailyText(),'日報のたねをコピーしました');if(a==='copyWeekly')copy(weeklyText(),'週報/1on1のたねをコピーしました');if(a==='copyMonthly')copy(monthlyText(),'月次ふりかえりをコピーしました');if(a==='exportJson')exportJson();if(a==='clearLogs')clearLogs();if(a==='requestNotif')requestNotif();if(a==='testNotif')showNotif('manual');if(a==='importCalendar')importCalendar();if(a==='calendarSample'){document.getElementById('calendarPaste').value='09:30 朝会\n10:00-11:00 顧客MTG\n15:00 1on1';importCalendar(true)}if(a==='connectGoogle')connectGoogleCalendar();if(a==='addTask'){const v=document.getElementById('taskAdd')?.value.trim();if(v&&!state.tasks.includes(v))state.tasks.unshift(v);render()}if(a==='copySpec')copy(specText(),'P0要件をコピーしました');if(a==='copyAdminGuide')copy(adminGuideText(),'管理者メモをコピーしました');if(a==='copyDbSchema')copy(dbSchemaText(),'DBスキーマをコピーしました');if(a==='copyGoogleSetup')copy(googleSetupText(),'Google手順をコピーしました');if(a==='copyCalendarPolicy')copy(calendarPolicyText(),'保存方針をコピーしました');if(a==='copyQa')copy(qaText(),'QAメモをコピーしました');if(a==='copyColleagueTest')copy(colleagueTestText(),'同僚テスト手順をコピーしました');if(a==='copyGoogleTrouble')copy(googleTroubleText(),'Google連携トラブルメモをコピーしました');if(a==='copyAdminIntro')copy(adminIntroText(),'導入説明をコピーしました');if(a==='copySafetyPolicy')copy(safetyPolicyText(),'安全利用方針をコピーしました');if(a==='copyPilotPlan')copy(pilotPlanText(),'パイロット計画をコピーしました');if(a==='copyFaq')copy(faqText(),'FAQをコピーしました');if(a==='selfTest')addSelfTestLog();if(a==='copyFirstGuide')copy(firstGuideText(),'初回ガイドをコピーしました');if(a==='completeOnboarding'){state.onboardingDone=!state.onboardingDone;toast(state.onboardingDone?'ガイドを閉じました':'ガイドを再表示します')}}
 function resetDraft(){state.editId=null;state.draft={emotion:null,progress:null,task:'',memo:'',nextAction:''}}
 function startEdit(id){const l=state.logs.find(x=>x.id===id);if(!l){toast('ログが見つかりません');return}state.editId=id;state.draft={emotion:l.emotion||null,progress:l.progress||null,task:l.task||'',memo:l.memo||'',nextAction:l.nextAction||''};state.quick=true;render()}
 function saveLog(){state.draft.task=document.getElementById('draftTask')?.value||state.draft.task;state.draft.memo=document.getElementById('draftMemo')?.value||'';state.draft.nextAction=document.getElementById('draftNext')?.value||'';const e=state.draft.emotion,p=state.draft.progress;if(!e&&!p&&!state.draft.memo.trim()){toast('感情か進捗をひとつ選んでね');return}if(state.editId){state.logs=state.logs.map(l=>l.id===state.editId?normalizeLog({...l,emotion:e,progress:p,emotionScore:e?.score??0,progressScore:p?.score??0,task:state.draft.task,memo:state.draft.memo.trim(),nextAction:state.draft.nextAction.trim(),updatedAt:new Date().toISOString(),version:VERSION,syncStatus:l.syncStatus==='synced'?'local':l.syncStatus,includeInReport:l.includeInReport!==false}):l);resetDraft();state.quick=false;toast('ログを修正しました');return}const log={id:Date.now()+'-'+Math.random().toString(36).slice(2),createdAt:new Date().toISOString(),emotion:e,progress:p,emotionScore:e?.score??0,progressScore:p?.score??0,task:state.draft.task,memo:state.draft.memo.trim(),nextAction:state.draft.nextAction.trim(),profile:{...state.profile},version:VERSION,syncStatus:'local',includeInReport:true};state.logs.unshift(log);resetDraft();state.quick=false;toast('波を記録しました')}
@@ -166,9 +169,9 @@ function fallbackCopy(t,msg){try{const ta=document.createElement('textarea');ta.
 function toast(m){state.toast=m;render();setTimeout(()=>{state.toast='';render()},1800)}
 function exportJson(){const blob=new Blob([JSON.stringify({profile:state.profile,logs:state.logs,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`namilog-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url)}
 function clearLogs(){if(confirm('すべてのログを削除しますか？')){state.logs=[];toast('削除しました')}}
-async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=38');state.sw.update?.();navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
+async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=39');state.sw.update?.();navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
 async function requestNotif(){if(!('Notification'in window)){toast('通知非対応です');return}const p=await Notification.requestPermission();state.permission=p;if(p==='granted'){state.settings.browserNotification=true;await showNotif('manual');toast('通知を許可しました')}else toast('通知は未許可です');render()}
-async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波をそっと残そう',{body:reason==='scheduled'?'感情・進み具合・いまのタスクを、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v38',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波をそっと残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
+async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波をそっと残そう',{body:reason==='scheduled'?'感情・進み具合・いまのタスクを、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v39',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波をそっと残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
 function startTimers(){setInterval(()=>{const due=Date.now()-(state.lastReminderAt||0)>=((Number(state.settings.intervalMinutes)||120)*60000);if(!due)return;state.lastReminderAt=Date.now();if(state.settings.browserNotification)showNotif('scheduled');if(state.settings.autoPopup){resetDraft();state.quick=true;render()}},60000)}
 function addSelfTestLog(){const e=emotions.find(x=>x.id==='calm'),p=progresses.find(x=>x.id==='little');state.logs.unshift(normalizeLog({id:Date.now()+'-qa',createdAt:new Date().toISOString(),emotion:e,progress:p,emotionScore:e.score,progressScore:p.score,task:'QAチェック',memo:'v38の動作確認用ログ',nextAction:'日報コピーと波グラフを確認する',profile:{...state.profile},version:VERSION,syncStatus:'local',includeInReport:true}));toast('テストログを追加しました')}
 function qaText(){return `NamiLog v32 QAメモ
@@ -276,3 +279,112 @@ function googleSetupText(){return `Googleカレンダー連携セットアップ
 function calendarPolicyText(){return `カレンダー保存方針\n保存する: 予定タイトル / 開始時刻 / 終了時刻\n保存しない: 本文 / 参加者 / Meet URL / 添付 / 場所\n目的: Quick Check時のタスク候補化。本人の振り返り補助にだけ使う。`}
 const urlp=new URLSearchParams(location.search);if(urlp.get('quickCheck')==='1'){state.quick=true;history.replaceState({},'',location.pathname)}
 setupSW();startTimers();render();
+
+
+function adminIntroText(){return `NamiLog 導入説明メモ
+
+NamiLogは、社員一人ひとりが自分だけの感情・進捗・タスクログを短時間で残し、日報・週報・1on1のたねに変換するセルフリフレクションツールです。
+
+目的
+- 日報を書くために一日を思い出す負担を減らす
+- 仕事中のモチベーションの波を見える化する
+- 週報や1on1で相談しやすい材料をつくる
+- 感情を評価するのではなく、働き方の再現条件や詰まりのサインを本人が見つける
+
+利用者の基本フロー
+1. 通知または「今の波を残す」からQuick Checkを開く
+2. 感情・進捗・タスクを選ぶ
+3. 必要なら一言メモを足す
+4. 夕方に日報のたねをコピーする
+5. 週末や1on1前に週報/1on1のたねをコピーする
+
+大事な前提
+- 個人ログは本人の振り返り用
+- 共有は本人がコピーした範囲だけ
+- 評価・監視・査定用途には使わない
+- 管理者は導入支援と環境整備を行い、個人ログを直接閲覧しない設計を守る
+`}
+
+function safetyPolicyText(){return `NamiLog 安全利用方針
+
+1. 個人ログの扱い
+NamiLogのログは、本人が自分の状態を振り返るためのものです。感情・進捗・タスク・メモは本人の内省データとして扱います。
+
+2. 共有範囲
+上長や同僚に共有されるのは、本人が日報・週報・1on1のたねとしてコピーした範囲だけです。自動共有はしません。
+
+3. 利用禁止
+以下の用途には使いません。
+- 社員の感情監視
+- 人事評価や査定の直接材料
+- 個人ごとの稼働監視
+- 本人の同意がないログ閲覧
+
+4. Googleカレンダー連携
+取得対象は予定タイトル・開始時刻・終了時刻に限定します。予定本文、参加者、Meet URL、添付、場所は原則保存しません。
+
+5. パイロットで確認すること
+- 利用者が心理的に安心して記録できるか
+- 日報・週報が書きやすくなるか
+- 1on1で相談材料として使えるか
+- 通知頻度が負担にならないか
+`}
+
+function pilotPlanText(){return `NamiLog パイロット計画案
+
+目的
+日報・週報・1on1の準備負担を減らし、感情・進捗・タスクの波から本人が振り返りやすくなるかを検証する。
+
+対象
+- 5〜10人程度から開始
+- 日報や週報を書く機会があるメンバー
+- 1on1で話す材料を増やしたいメンバー
+
+期間
+- 1週間：基本動作確認
+- 2〜4週間：週報・1on1での有用性確認
+
+検証項目
+1. Quick Checkは3秒〜30秒で記録できるか
+2. 通知は邪魔にならないか
+3. 日報コピーがそのまま使えるか
+4. 週報/1on1のたねが相談材料になるか
+5. Googleカレンダー予定がタスク候補として役立つか
+6. 個人ログ・安全利用方針に不安がないか
+
+成功条件
+- 週3回以上ログが残る人がいる
+- 日報/週報コピーを実際に使える
+- 1on1で話しやすくなったという声が出る
+- 評価・監視への不安が小さい
+
+次の判断
+- 通知頻度の調整
+- 文面の改善
+- Google連携の本格化
+- 個別アカウント/DB保存への移行
+`}
+
+function faqText(){return `NamiLog FAQ
+
+Q. 自分の感情ログは上長に見えますか？
+A. 見えません。共有されるのは、本人が日報・週報・1on1のたねとしてコピーした範囲だけです。
+
+Q. 評価に使われますか？
+A. 使いません。NamiLogは評価・監視ツールではなく、本人の振り返りと日報/面談準備を助けるツールです。
+
+Q. Googleカレンダーの何を取得しますか？
+A. 予定タイトル・開始時刻・終了時刻だけを扱う方針です。予定本文、参加者、Meet URLなどは扱いません。
+
+Q. 何を記録すればいいですか？
+A. 感情、進捗、タスクを選ぶだけでOKです。余裕があれば一言メモや次の一手を足します。
+
+Q. ネガティブなログを残しても大丈夫ですか？
+A. 大丈夫です。NamiLogではネガティブな状態も「失敗」ではなく、波として扱います。日報に入れたくないログは外せます。
+
+Q. 通知が多いときはどうすればいいですか？
+A. リマインド設定で間隔を変えるか、通知をオフにできます。
+
+Q. ログを消したり直したりできますか？
+A. できます。ログは編集・削除できます。日報に入れる/外すも選べます。
+`}
