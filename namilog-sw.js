@@ -1,4 +1,4 @@
-// v31 qa hardening
+// v32 qa hardening
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {

@@ -1,4 +1,4 @@
-const VERSION='v31-qa-hardening';
+const VERSION='v32-report-copy-polish';
 const LOG_KEY='namilog.quick-check.logs.v1';
 const SETTINGS_KEY='namilog.quick-check.settings.v1';
 const PROFILE_KEY='namilog.profile.v1';
@@ -47,10 +47,49 @@ function insightCards(logs){const w=weather(logs);const ts=taskStats(logs);const
  {t:'下がりやすいタスク',b:low?`${low.task}：${scoreLabel(low.total)}`:'まだ観測中',d:'期待値調整、相談、分解、同席依頼などの話題にできます。'}
 ]}
 function mostLabel(logs,type){const m={};logs.forEach(l=>{const o=l[type];if(o?.label)m[o.label]=(m[o.label]||0)+1});const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return top?top[0]:'観測中'}
-function dailyText(){const logs=todayLogs().filter(l=>l.includeInReport!==false).slice().reverse();const w=weather(logs);const positive=logs.filter(l=>combinedScore(l)>.6);const negative=logs.filter(l=>combinedScore(l)<-.6);const moved=logs.filter(l=>(l.progressScore||0)>0);const stuck=logs.filter(l=>(l.progressScore||0)<0);const nexts=logs.map(l=>l.nextAction).filter(Boolean);const topWords=words(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ少なめ';const mainTask=(taskStats(logs).slice().sort((a,b)=>b.n-a.n)[0]?.task)||'まだ観測中';const line=l=>`- ${fmtTime(l.createdAt)} ${l.emotion?.emoji||''} ${l.emotion?.label||''}${l.progress?` / ${l.progress.emoji} ${l.progress.label}`:''}${l.task?`｜${l.task}`:''}${l.memo?`
-  - メモ：${l.memo}`:''}${l.nextAction?`
-  - 次：${l.nextAction}`:''}`;return [`# NamiLog 日報のたね ${new Date().toLocaleDateString('ja-JP')}`,'',`## 今日のこころ天気：${w.icon} ${w.text}`,'',`- 今日の波の平均：${w.score.toFixed(1)}` ,`- よく出た言葉：${topWords}` ,`- 頭に残っていたタスク：${mainTask}`,'','## 今日の波の記録',...(logs.length?logs.map(line):['- まだログがありません']),'','## 日報にそのまま使えそうな一文','- 今日は「'+w.text+'」寄りの波でした。'+(moved[0]?.task?`特に「${moved[0].task}」では進みを感じました。`:'')+(stuck[0]?.task?`一方で「${stuck[0].task}」では少し詰まりがありました。`:''),'','## 進んだこと',...(moved.length?moved.slice(0,3).map(l=>`- ${l.task||'未分類'}：${l.progress?.label||'進んだ'}${l.memo?`（${l.memo}）`:''}`):['- ']),'','## 詰まったこと / 気になったこと',...(negative.length?negative.slice(0,3).map(l=>`- ${l.task||'未分類'}：${l.emotion?.label||''}${l.progress?` / ${l.progress.label}`:''}${l.memo?`（${l.memo}）`:''}`):['- ']),'','## 明日の一手',...(nexts.length?nexts.slice(0,3).map(x=>`- ${x}`):['- ']),''].join('\n')}
-function weeklyText(){const logs=state.logs.filter(l=>inDays(l,7)&&l.includeInReport!==false).slice().reverse();const cards=insightCards(logs);const ts=taskStats(logs);const low=ts[0],high=ts[ts.length-1];const neg=logs.filter(l=>combinedScore(l)<-.6);const pos=logs.filter(l=>combinedScore(l)>.6);const topWords=words(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ少なめ';const w=weather(logs);return [`# NamiLog 週報・1on1のたね`,'',`## 今週のこころ天気：${w.icon} ${w.text}` ,`- 平均スコア：${w.score.toFixed(1)}` ,`- ログ件数：${logs.length}件`,`- よく出た言葉：${topWords}`,'','## 今週よかった流れ',...(pos.length?pos.slice(0,5).map(l=>`- ${fmtDate(l.createdAt)} ${l.task||'未分類'}：${l.emotion?.label||''}${l.progress?` / ${l.progress.label}`:''}${l.memo?`（${l.memo}）`:''}`):['- ']),'','## 詰まりやすかった流れ',...(neg.length?neg.slice(0,5).map(l=>`- ${fmtDate(l.createdAt)} ${l.task||'未分類'}：${l.emotion?.label||''}${l.progress?` / ${l.progress.label}`:''}${l.memo?`（${l.memo}）`:''}`):['- ']),'','## タスク別の傾向',high?`- 上がりやすい：${high.task}（${scoreLabel(high.total)}）`:'- 上がりやすい：まだ観測中',low?`- 下がりやすい：${low.task}（${scoreLabel(low.total)}）`:'- 下がりやすい：まだ観測中','','## 1on1で話すなら',...(cards.slice(2,6).map(c=>`- ${c.t}：${c.b}。${c.d}`)),'','## 来週ためしたいこと','- 詰まったタスクを1つだけ分解する','- 波が上がりやすかった条件をもう一度つくる',''].join('\n')}
+function dailyText(){
+  const logs=todayLogs().filter(l=>l.includeInReport!==false).slice().reverse();
+  const w=weather(logs);
+  const moved=logs.filter(l=>(l.progressScore||0)>0);
+  const stuck=logs.filter(l=>(l.progressScore||0)<0||combinedScore(l)<-.6);
+  const calmOrGood=logs.filter(l=>combinedScore(l)>.6);
+  const nexts=logs.map(l=>l.nextAction).filter(Boolean);
+  const topWords=words(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ少なめ';
+  const mainTask=(taskStats(logs).slice().sort((a,b)=>b.n-a.n)[0]?.task)||'まだ観測中';
+  const daySentence=logs.length
+    ? `今日は「${w.text}」寄りの波でした。${moved[0]?.task?`特に「${moved[0].task}」では前進感がありました。`:''}${stuck[0]?.task?`一方で「${stuck[0].task}」では少し引っかかりがありました。`:''}`
+    : '今日はまだログが少ないため、まずは一日の終わりに印象を一言だけ補足すると使いやすくなります。';
+  const line=l=>`- ${fmtTime(l.createdAt)} ${l.emotion?.emoji||''} ${l.emotion?.label||'未選択'}${l.progress?` / ${l.progress.emoji} ${l.progress.label}`:''}${l.task?`｜${l.task}`:''}${l.memo?`\n  - メモ：${l.memo}`:''}${l.nextAction?`\n  - 次の一手：${l.nextAction}`:''}`;
+  return [`# NamiLog 日報のたね ${new Date().toLocaleDateString('ja-JP')}`,'',
+  '## 1. 今日のひとことで言うと',`- ${daySentence}`,'',
+  `## 2. 今日のこころ天気：${w.icon} ${w.text}`,`- 波の平均：${w.score.toFixed(1)}` ,`- よく出た言葉：${topWords}` ,`- 頭に残っていたタスク：${mainTask}`,'',
+  '## 3. 進んだこと',...(moved.length?moved.slice(0,4).map(l=>`- ${l.task||'未分類'}：${l.progress?.label||'進んだ'}${l.memo?`（${l.memo}）`:''}`):['- ']),'',
+  '## 4. 詰まったこと / 気になったこと',...(stuck.length?stuck.slice(0,4).map(l=>`- ${l.task||'未分類'}：${l.emotion?.label||''}${l.progress?` / ${l.progress.label}`:''}${l.memo?`（${l.memo}）`:''}`):['- ']),'',
+  '## 5. 明日の一手',...(nexts.length?nexts.slice(0,4).map(x=>`- ${x}`):['- ']),'',
+  '## 6. 今日の波の記録',...(logs.length?logs.map(line):['- まだログがありません']),'',
+  '## 補足メモ','- 日報に使わないログは、画面上で「日報から外す」にするとこの文章から除外されます。',''].join('\n')
+}
+function weeklyText(){
+  const logs=state.logs.filter(l=>inDays(l,7)&&l.includeInReport!==false).slice().reverse();
+  const cards=insightCards(logs);
+  const ts=taskStats(logs);
+  const low=ts[0],high=ts[ts.length-1];
+  const neg=logs.filter(l=>combinedScore(l)<-.6);
+  const pos=logs.filter(l=>combinedScore(l)>.6);
+  const topWords=words(logs).map(([w,c])=>`${w}(${c})`).join('、')||'まだ少なめ';
+  const w=weather(logs);
+  const weekSummary=logs.length
+    ? `今週は「${w.text}」寄りの波でした。${high?`波が上がりやすかったのは「${high.task}」。`:''}${low&&low.task!==high?.task?`少し負荷が出やすかったのは「${low.task}」。`:''}`
+    : '今週はまだログが少なめです。来週は1日1件だけでも残すと、傾向が見えやすくなります。';
+  return [`# NamiLog 週報・1on1のたね`,'',
+  '## 1. 今週のひとことで言うと',`- ${weekSummary}`,'',
+  `## 2. 今週のこころ天気：${w.icon} ${w.text}` ,`- 平均スコア：${w.score.toFixed(1)}` ,`- ログ件数：${logs.length}件`,`- よく出た言葉：${topWords}`,'',
+  '## 3. 今週よかった流れ',...(pos.length?pos.slice(0,5).map(l=>`- ${fmtDate(l.createdAt)} ${l.task||'未分類'}：${l.emotion?.label||''}${l.progress?` / ${l.progress.label}`:''}${l.memo?`（${l.memo}）`:''}`):['- ']),'',
+  '## 4. 詰まりやすかった流れ',...(neg.length?neg.slice(0,5).map(l=>`- ${fmtDate(l.createdAt)} ${l.task||'未分類'}：${l.emotion?.label||''}${l.progress?` / ${l.progress.label}`:''}${l.memo?`（${l.memo}）`:''}`):['- ']),'',
+  '## 5. タスク別の傾向',high?`- 波が上がりやすい：${high.task}（${scoreLabel(high.total)}）`:'- 波が上がりやすい：まだ観測中',low?`- 波が下がりやすい：${low.task}（${scoreLabel(low.total)}）`:'- 波が下がりやすい：まだ観測中','',
+  '## 6. 1on1で相談・共有するとよさそうなこと',...(cards.slice(2,6).map(c=>`- ${c.t}：${c.b}。${c.d}`)),'',
+  '## 7. 来週ためしたいこと','- 詰まったタスクを1つだけ分解する','- 波が上がりやすかった条件をもう一度つくる','- 相談したいことを1つだけ先に言語化する',''].join('\n')
+}
 function render(){save(LOG_KEY,state.logs);save(SETTINGS_KEY,state.settings);save(PROFILE_KEY,state.profile);save(TASK_KEY,state.tasks);save(CALENDAR_KEY,state.calendarEvents);save(DB_KEY,state.db);save(AUTH_KEY,state.auth);document.getElementById('app').innerHTML=html();bind()}
 function html(){const logs=todayLogs();const plogs=periodLogs();return `<div class="app">
 <header class="hero"><div><span class="badge">NAMILOG <span class="version">${VERSION}</span></span><h1>NamiLog</h1><p class="lead">感情の波と仕事の進み方を、やさしく見える化するログアプリです。まずは3秒で残す。あとから補足・修正して、日報・週報・1on1のたねに変えます。</p></div><div class="heroActions"><button class="btn primary" data-a="openQuick">今の波を残す</button><button class="btn soft" data-a="copyDaily">日報をコピー</button></div></header>
@@ -83,12 +122,12 @@ function fallbackCopy(t,msg){try{const ta=document.createElement('textarea');ta.
 function toast(m){state.toast=m;render();setTimeout(()=>{state.toast='';render()},1800)}
 function exportJson(){const blob=new Blob([JSON.stringify({profile:state.profile,logs:state.logs,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`namilog-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url)}
 function clearLogs(){if(confirm('すべてのログを削除しますか？')){state.logs=[];toast('削除しました')}}
-async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=31');state.sw.update?.();navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
+async function setupSW(){if(!('serviceWorker'in navigator))return;try{state.sw=await navigator.serviceWorker.register('/Namilog/namilog-sw.js?v=32');state.sw.update?.();navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OPEN_QUICK_CHECK'){resetDraft();state.quick=true;render()}})}catch(e){}}
 async function requestNotif(){if(!('Notification'in window)){toast('通知非対応です');return}const p=await Notification.requestPermission();state.permission=p;if(p==='granted'){state.settings.browserNotification=true;await showNotif('manual');toast('通知を許可しました')}else toast('通知は未許可です');render()}
-async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波をそっと残そう',{body:reason==='scheduled'?'感情・進み具合・いまのタスクを、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v31',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波をそっと残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
+async function showNotif(reason){if(!('Notification'in window)||Notification.permission!=='granted'){toast('先に通知を許可してね');return}try{const reg=state.sw||await navigator.serviceWorker.ready;await reg.showNotification('NamiLog｜今の波をそっと残そう',{body:reason==='scheduled'?'感情・進み具合・いまのタスクを、そっと記録する時間です。':'クリックするとQuick Checkを開きます。',tag:'namilog-v32',renotify:true,data:{url:'/Namilog/?quickCheck=1'},actions:[{action:'open',title:'記録する'},{action:'later',title:'あとで'}]});if(reason==='manual')toast('通知を出しました')}catch{new Notification('NamiLog｜今の波をそっと残そう',{body:'クリックするとQuick Checkを開きます。'});toast('通知を出しました')}}
 function startTimers(){setInterval(()=>{const due=Date.now()-(state.lastReminderAt||0)>=((Number(state.settings.intervalMinutes)||120)*60000);if(!due)return;state.lastReminderAt=Date.now();if(state.settings.browserNotification)showNotif('scheduled');if(state.settings.autoPopup){resetDraft();state.quick=true;render()}},60000)}
-function addSelfTestLog(){const e=emotions.find(x=>x.id==='calm'),p=progresses.find(x=>x.id==='little');state.logs.unshift(normalizeLog({id:Date.now()+'-qa',createdAt:new Date().toISOString(),emotion:e,progress:p,emotionScore:e.score,progressScore:p.score,task:'QAチェック',memo:'v31の動作確認用ログ',nextAction:'日報コピーと波グラフを確認する',profile:{...state.profile},version:VERSION,syncStatus:'local',includeInReport:true}));toast('テストログを追加しました')}
-function qaText(){return `NamiLog v31 QAメモ
+function addSelfTestLog(){const e=emotions.find(x=>x.id==='calm'),p=progresses.find(x=>x.id==='little');state.logs.unshift(normalizeLog({id:Date.now()+'-qa',createdAt:new Date().toISOString(),emotion:e,progress:p,emotionScore:e.score,progressScore:p.score,task:'QAチェック',memo:'v32の動作確認用ログ',nextAction:'日報コピーと波グラフを確認する',profile:{...state.profile},version:VERSION,syncStatus:'local',includeInReport:true}));toast('テストログを追加しました')}
+function qaText(){return `NamiLog v32 QAメモ
 
 確認項目
 - Quick Checkで保存できる
