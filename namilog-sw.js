@@ -1,4 +1,4 @@
-// v36 google client embedded
+// v37 colleague calendar test
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {
