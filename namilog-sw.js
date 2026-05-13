@@ -1,4 +1,4 @@
-// v40 pilot complete
+// v40.1 calendar today hotfix
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {
