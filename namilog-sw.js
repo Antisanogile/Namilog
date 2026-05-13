@@ -1,4 +1,4 @@
-// v40.1 calendar today hotfix
+// v40.2 calendar auto sync hotfix
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {
