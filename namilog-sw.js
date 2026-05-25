@@ -1,4 +1,4 @@
-const VERSION = 'v40.6-report-culture-starter';
+const VERSION = 'v40.7-report-culture-starter';
 self.addEventListener('install', event => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('notificationclick', event => {
